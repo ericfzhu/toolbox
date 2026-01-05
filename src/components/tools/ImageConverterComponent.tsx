@@ -9,6 +9,8 @@ interface ImageDimensions {
 	height: number;
 }
 
+const MAX_IMAGE_DIMENSION = 4096;
+
 export default function ImageConverterComponent() {
 	const [isImageDragging, setIsImageDragging] = useState<boolean>(false);
 	const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -20,13 +22,29 @@ export default function ImageConverterComponent() {
 	const [dragStartY, setDragStartY] = useState(0);
 	const [activeDimension, setActiveDimension] = useState<'width' | 'height' | null>(null);
 
+	// Cleanup on unmount to prevent memory leaks
+	useEffect(() => {
+		return () => {
+			setOriginalImage(null);
+		};
+	}, []);
+
 	useEffect(() => {
 		if (originalImage) {
 			const img = new window.Image();
 			img.onload = () => {
-				const ratio = img.width / img.height;
+				let { width, height } = img;
+
+				// Resize if too large
+				if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
+					const scale = MAX_IMAGE_DIMENSION / Math.max(width, height);
+					width = Math.round(width * scale);
+					height = Math.round(height * scale);
+				}
+
+				const ratio = width / height;
 				setAspectRatio(ratio);
-				setImageDimensions({ width: img.width, height: img.height });
+				setImageDimensions({ width, height });
 			};
 			img.src = originalImage;
 		}

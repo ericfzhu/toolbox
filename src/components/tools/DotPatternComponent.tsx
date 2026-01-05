@@ -7,6 +7,8 @@ import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 type ShapeType = 'circle' | 'square' | 'heart';
 type ImageFormat = 'png' | 'jpeg' | 'webp';
 
+const MAX_IMAGE_DIMENSION = 2048;
+
 export default function DotPatternComponent() {
 	const [originalImage, setOriginalImage] = useState<string | null>(null);
 	const [convertedImage, setConvertedImage] = useState<string | null>(null);
@@ -21,6 +23,23 @@ export default function DotPatternComponent() {
 	const compareContainerRef = useRef<HTMLDivElement>(null);
 	const sliderRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	// Cleanup on unmount to prevent memory leaks
+	useEffect(() => {
+		const canvas = canvasRef.current;
+
+		return () => {
+			setOriginalImage(null);
+			setConvertedImage(null);
+			setImageDimensions(null);
+			if (canvas) {
+				const ctx = canvas.getContext('2d');
+				ctx?.clearRect(0, 0, canvas.width, canvas.height);
+				canvas.width = 0;
+				canvas.height = 0;
+			}
+		};
+	}, []);
 
 	const handleImageUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -203,13 +222,43 @@ export default function DotPatternComponent() {
 	}, [convertedImage, imageFormat, imageQuality]);
 
 	function processFile(file: File) {
-		if (file.type.startsWith('image/')) {
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				setOriginalImage(e.target?.result as string);
+		if (!file.type.startsWith('image/')) return;
+
+		// Clear previous data to free memory
+		setConvertedImage(null);
+		setOriginalImage(null);
+
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			const dataUrl = e.target?.result as string;
+			if (!dataUrl) return;
+
+			// Check if image needs resizing
+			const img = new window.Image();
+			img.onload = () => {
+				let { width, height } = img;
+
+				if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
+					const scale = MAX_IMAGE_DIMENSION / Math.max(width, height);
+					width = Math.round(width * scale);
+					height = Math.round(height * scale);
+
+					const canvas = document.createElement('canvas');
+					canvas.width = width;
+					canvas.height = height;
+					const ctx = canvas.getContext('2d');
+					if (ctx) {
+						ctx.drawImage(img, 0, 0, width, height);
+						setOriginalImage(canvas.toDataURL('image/jpeg', 0.9));
+						return;
+					}
+				}
+
+				setOriginalImage(dataUrl);
 			};
-			reader.readAsDataURL(file);
-		}
+			img.src = dataUrl;
+		};
+		reader.readAsDataURL(file);
 	}
 
 	useEffect(() => {

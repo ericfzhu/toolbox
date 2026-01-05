@@ -33,9 +33,25 @@ export default function ColorPickerComponent() {
 		handleDragLeave,
 		handleDrop,
 		openFilePicker,
-	} = useImageUpload();
+	} = useImageUpload({ maxDimension: 2048 });
 
 	const { copy } = useClipboard();
+
+	// Cleanup on unmount to prevent memory leaks
+	useEffect(() => {
+		const canvas = canvasRef.current;
+
+		return () => {
+			setSelectedColors([]);
+			setMagnifierPosition(null);
+			if (canvas) {
+				const ctx = canvas.getContext('2d');
+				ctx?.clearRect(0, 0, canvas.width, canvas.height);
+				canvas.width = 0;
+				canvas.height = 0;
+			}
+		};
+	}, []);
 
 	function getPalette(imageData: ImageData, colorCount: number = 5, quality: number = 10): [number, number, number][] {
 		const pixels: [number, number, number][] = [];

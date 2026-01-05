@@ -83,13 +83,28 @@ export default function GaussianBlurComponent(): JSX.Element {
 		handleDragLeave,
 		handleDrop,
 		openFilePicker,
-	} = useImageUpload();
+	} = useImageUpload({ maxDimension: 2048 });
 
 	const { downloadDataUrl } = useDownload();
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const compareContainerRef = useRef<HTMLDivElement>(null);
 	const sliderRef = useRef<HTMLDivElement>(null);
+
+	// Cleanup on unmount to prevent memory leaks
+	useEffect(() => {
+		const canvas = canvasRef.current;
+
+		return () => {
+			setBlurredImage(null);
+			if (canvas) {
+				const ctx = canvas.getContext('2d');
+				ctx?.clearRect(0, 0, canvas.width, canvas.height);
+				canvas.width = 0;
+				canvas.height = 0;
+			}
+		};
+	}, []);
 
 	const applyBlur = useCallback((): void => {
 		if (!originalImage) return;

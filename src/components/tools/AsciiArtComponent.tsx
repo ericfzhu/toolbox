@@ -126,6 +126,9 @@ function applySobelEdgeDetection(data: number[], width: number, height: number, 
 	return result;
 }
 
+// Maximum image dimension to prevent memory issues
+const MAX_IMAGE_DIMENSION = 2048;
+
 export default function EnhancedAsciiArtComponent() {
 	const [originalImage, setOriginalImage] = useState<string | null>(null);
 	const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
@@ -157,9 +160,38 @@ export default function EnhancedAsciiArtComponent() {
 	const [comparePosition, setComparePosition] = useState<number>(50);
 	const [dragState, setDragState] = useState<'upload' | 'divider' | null>(null);
 
-	// Handle file upload
+	// Cleanup on unmount to prevent memory leaks
+	useEffect(() => {
+		const hiddenCanvas = hiddenCanvasRef.current;
+		const displayCanvas = displayCanvasRef.current;
+
+		return () => {
+			setOriginalImage(null);
+			setImageDimensions(null);
+			setAsciiData([]);
+			// Clear canvas contexts
+			if (hiddenCanvas) {
+				const ctx = hiddenCanvas.getContext('2d');
+				ctx?.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+				hiddenCanvas.width = 0;
+				hiddenCanvas.height = 0;
+			}
+			if (displayCanvas) {
+				const ctx = displayCanvas.getContext('2d');
+				ctx?.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+				displayCanvas.width = 0;
+				displayCanvas.height = 0;
+			}
+		};
+	}, []);
+
+	// Handle file upload with automatic resizing for large images
 	const handleFileUpload = useCallback((file: File) => {
 		if (!file.type.startsWith('image/')) return;
+
+		// Clear previous data to free memory
+		setAsciiData([]);
+		setOriginalImage(null);
 
 		const reader = new FileReader();
 		reader.onload = (e: ProgressEvent<FileReader>) => {
@@ -167,6 +199,27 @@ export default function EnhancedAsciiArtComponent() {
 			if (typeof result === 'string') {
 				const img = new window.Image();
 				img.onload = () => {
+					let { width, height } = img;
+
+					// Resize if image is too large to prevent memory issues
+					if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
+						const scale = MAX_IMAGE_DIMENSION / Math.max(width, height);
+						width = Math.round(width * scale);
+						height = Math.round(height * scale);
+
+						const canvas = document.createElement('canvas');
+						canvas.width = width;
+						canvas.height = height;
+						const ctx = canvas.getContext('2d');
+						if (ctx) {
+							ctx.drawImage(img, 0, 0, width, height);
+							const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+							setImageDimensions({ width, height });
+							setOriginalImage(resizedDataUrl);
+							return;
+						}
+					}
+
 					setImageDimensions({ width: img.width, height: img.height });
 					setOriginalImage(result);
 				};
@@ -341,6 +394,9 @@ export default function EnhancedAsciiArtComponent() {
 				return;
 			}
 
+			// Determine if color output is requested
+			const useColor = type.includes('color');
+
 			// For image downloads
 			const canvas = document.createElement('canvas');
 			const ctx = canvas.getContext('2d');
@@ -350,24 +406,28 @@ export default function EnhancedAsciiArtComponent() {
 			const scaleFactor = 2; // For better quality
 			const borderMargin = 20 * scaleFactor;
 
-			// Calculate text dimensions
+			// Calculate text dimensions - need a temp canvas to measure before setting final size
+			const tempCanvas = document.createElement('canvas');
+			const tempCtx = tempCanvas.getContext('2d');
+			if (!tempCtx) return;
+
 			const fontSize = Math.max(8, Math.floor(imageDimensions.width / asciiData[0].length)) * scaleFactor;
-			ctx.font = `${fontSize}px monospace`;
+			tempCtx.font = `${fontSize}px monospace`;
 
 			// Measure the width of a sample line
 			const sampleLine = asciiData[0].map((cell) => cell.char).join('');
-			const maxLineWidth = ctx.measureText(sampleLine).width;
+			const maxLineWidth = tempCtx.measureText(sampleLine).width;
 
 			// Calculate total dimensions
 			const lineHeight = fontSize * 1.2;
 			const textWidth = maxLineWidth;
 			const textHeight = asciiData.length * lineHeight;
 
-			// Set canvas size with margins
+			// Set canvas size with margins (this resets context state)
 			canvas.width = textWidth + 2 * borderMargin;
 			canvas.height = textHeight + 2 * borderMargin;
 
-			// Fill background
+			// Re-establish context state after canvas resize
 			ctx.fillStyle = 'white';
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -375,28 +435,34 @@ export default function EnhancedAsciiArtComponent() {
 			ctx.font = `${fontSize}px monospace`;
 			ctx.textBaseline = 'top';
 
+			// Calculate character width for positioning
+			const charWidth = textWidth / asciiData[0].length;
+
 			// Draw each character
 			for (let y = 0; y < asciiData.length; y++) {
 				for (let x = 0; x < asciiData[y].length; x++) {
 					const { char, color } = asciiData[y][x];
 
+					// Skip spaces for performance
+					if (char === ' ') continue;
+
 					// Set color based on download type
-					if (type.includes('color')) {
+					if (useColor) {
 						ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
 					} else {
-						const gray = rgbToGrayscale(color.r, color.g, color.b);
+						const gray = Math.round(rgbToGrayscale(color.r, color.g, color.b));
 						ctx.fillStyle = `rgb(${gray}, ${gray}, ${gray})`;
 					}
 
 					// Calculate position with margin
-					const xPos = borderMargin + x * (textWidth / asciiData[y].length);
+					const xPos = borderMargin + x * charWidth;
 					const yPos = borderMargin + y * lineHeight;
 
 					ctx.fillText(char, xPos, yPos);
 				}
 			}
 
-			// Convert to blob and download
+			// Convert to blob and download - use PNG for color to preserve quality
 			const format = type.startsWith('webp') ? 'image/webp' : 'image/jpeg';
 			const extension = type.startsWith('webp') ? 'webp' : 'jpg';
 
@@ -413,7 +479,7 @@ export default function EnhancedAsciiArtComponent() {
 					URL.revokeObjectURL(url);
 				},
 				format,
-				0.95, // Quality
+				0.95,
 			);
 		},
 		[asciiData, imageDimensions],

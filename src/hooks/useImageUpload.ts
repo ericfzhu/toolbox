@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ImageDimensions } from '@/lib/types';
 
 interface UseImageUploadOptions {
 	onImageLoad?: (dataUrl: string, dimensions: ImageDimensions) => void;
+	maxDimension?: number; // Optional max dimension to resize large images
 }
 
 interface UseImageUploadReturn {
@@ -22,10 +23,19 @@ interface UseImageUploadReturn {
 }
 
 export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUploadReturn {
+	const { maxDimension = 4096 } = options;
 	const [image, setImage] = useState<string | null>(null);
 	const [dimensions, setDimensions] = useState<ImageDimensions | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			setImage(null);
+			setDimensions(null);
+		};
+	}, []);
 
 	const processFile = useCallback(
 		(file: File) => {
@@ -38,6 +48,30 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
 
 				const img = new window.Image();
 				img.onload = () => {
+					let { width, height } = img;
+
+					// Resize if image is too large to prevent memory issues
+					if (width > maxDimension || height > maxDimension) {
+						const scale = maxDimension / Math.max(width, height);
+						width = Math.round(width * scale);
+						height = Math.round(height * scale);
+
+						// Create a resized version
+						const canvas = document.createElement('canvas');
+						canvas.width = width;
+						canvas.height = height;
+						const ctx = canvas.getContext('2d');
+						if (ctx) {
+							ctx.drawImage(img, 0, 0, width, height);
+							const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+							const dims = { width, height };
+							setImage(resizedDataUrl);
+							setDimensions(dims);
+							options.onImageLoad?.(resizedDataUrl, dims);
+							return;
+						}
+					}
+
 					const dims = { width: img.width, height: img.height };
 					setImage(dataUrl);
 					setDimensions(dims);
@@ -47,7 +81,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
 			};
 			reader.readAsDataURL(file);
 		},
-		[options],
+		[options, maxDimension],
 	);
 
 	const handleFileChange = useCallback(
