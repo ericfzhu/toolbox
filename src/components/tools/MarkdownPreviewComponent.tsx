@@ -128,6 +128,7 @@ ${htmlContent}
 					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
 					<IconCopy size={16} />
 					Copy HTML
+					<span className="text-xs text-zinc-400 ml-1">⌘S</span>
 				</button>
 				<button
 					onClick={handleDownloadHtml}
@@ -135,6 +136,7 @@ ${htmlContent}
 					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
 					<IconDownload size={16} />
 					Download HTML
+					<span className="text-xs text-zinc-400 ml-1">⌘D</span>
 				</button>
 				<button onClick={handleLoadSample} className="bg-zinc-200 hover:bg-zinc-300 px-4 py-2 rounded-sm transition-colors">
 					Load Sample

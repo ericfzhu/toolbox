@@ -238,14 +238,16 @@ export default function JsonToolComponent() {
 				<button
 					onClick={handleFormat}
 					disabled={!parseResult.valid || !input.trim()}
-					className="bg-zinc-700 hover:bg-zinc-800 disabled:bg-zinc-300 text-white px-4 py-2 rounded-sm transition-colors">
+					className="bg-zinc-700 hover:bg-zinc-800 disabled:bg-zinc-300 text-white px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
 					Format
+					<span className="text-xs text-zinc-400">⌘⇧F</span>
 				</button>
 				<button
 					onClick={handleMinify}
 					disabled={!parseResult.valid || !input.trim()}
-					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-4 py-2 rounded-sm transition-colors">
+					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
 					Minify
+					<span className="text-xs text-zinc-400">⌘⇧M</span>
 				</button>
 				<button
 					onClick={handleCopy}

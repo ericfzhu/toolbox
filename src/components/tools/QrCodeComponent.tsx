@@ -170,6 +170,7 @@ export default function QrCodeComponent() {
 							className="w-full bg-zinc-600 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2 transition-colors">
 							<IconDownload size={18} />
 							<span>Download PNG</span>
+							<span className="text-xs text-zinc-400 ml-1">⌘S</span>
 						</button>
 						<button
 							onClick={() => handleDownload('svg')}
