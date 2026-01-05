@@ -4,7 +4,7 @@ import { IconDownload } from '@tabler/icons-react';
 import QRCode from 'qrcode';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useDownload } from '@/hooks';
+import { useDownload, useKeyboardShortcut } from '@/hooks';
 
 type ErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H';
 
@@ -49,33 +49,41 @@ export default function QrCodeComponent() {
 		generateQrCode();
 	}, [generateQrCode]);
 
-	function handleDownload(format: 'png' | 'svg') {
-		if (!text.trim()) return;
+	const handleDownload = useCallback(
+		(format: 'png' | 'svg') => {
+			if (!text.trim()) return;
 
-		if (format === 'svg') {
-			QRCode.toString(text, {
-				type: 'svg',
-				margin: 2,
-				errorCorrectionLevel: errorCorrection,
-				color: {
-					dark: foregroundColor,
-					light: backgroundColor,
-				},
-			})
-				.then((svg) => {
-					const blob = new Blob([svg], { type: 'image/svg+xml' });
-					const url = URL.createObjectURL(blob);
-					const link = document.createElement('a');
-					link.href = url;
-					link.download = 'qrcode.svg';
-					link.click();
-					URL.revokeObjectURL(url);
+			if (format === 'svg') {
+				QRCode.toString(text, {
+					type: 'svg',
+					margin: 2,
+					errorCorrectionLevel: errorCorrection,
+					color: {
+						dark: foregroundColor,
+						light: backgroundColor,
+					},
 				})
-				.catch(console.error);
-		} else if (qrDataUrl) {
-			downloadDataUrl(qrDataUrl, 'qrcode.png');
-		}
-	}
+					.then((svg) => {
+						const blob = new Blob([svg], { type: 'image/svg+xml' });
+						const url = URL.createObjectURL(blob);
+						const link = document.createElement('a');
+						link.href = url;
+						link.download = 'qrcode.svg';
+						link.click();
+						URL.revokeObjectURL(url);
+					})
+					.catch(console.error);
+			} else if (qrDataUrl) {
+				downloadDataUrl(qrDataUrl, 'qrcode.png');
+			}
+		},
+		[text, errorCorrection, foregroundColor, backgroundColor, qrDataUrl, downloadDataUrl],
+	);
+
+	const handleDownloadPng = useCallback(() => handleDownload('png'), [handleDownload]);
+
+	// Keyboard shortcut: Ctrl+S to download PNG
+	useKeyboardShortcut({ key: 's', modifiers: ['ctrl'], callback: handleDownloadPng, disabled: !qrDataUrl });
 
 	return (
 		<div className="flex gap-8 w-full max-w-4xl mx-auto">

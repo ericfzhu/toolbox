@@ -3,7 +3,7 @@
 import { IconChevronDown, IconChevronRight, IconCopy, IconCheck } from '@tabler/icons-react';
 import { useState, useMemo, useCallback } from 'react';
 
-import { useClipboard } from '@/hooks';
+import { useClipboard, useKeyboardShortcuts } from '@/hooks';
 
 type ViewMode = 'tree' | 'formatted' | 'minified';
 
@@ -152,29 +152,35 @@ export default function JsonToolComponent() {
 		return JSON.stringify(parseResult.data);
 	}, [parseResult]);
 
-	function handleFormat() {
+	const handleFormat = useCallback(() => {
 		if (parseResult.valid && parseResult.data !== null) {
 			setInput(formattedJson);
 		}
-	}
+	}, [parseResult.valid, parseResult.data, formattedJson]);
 
-	function handleMinify() {
+	const handleMinify = useCallback(() => {
 		if (parseResult.valid && parseResult.data !== null) {
 			setInput(minifiedJson);
 		}
-	}
+	}, [parseResult.valid, parseResult.data, minifiedJson]);
 
-	function handleCopy() {
+	const handleCopy = useCallback(() => {
 		if (viewMode === 'minified') {
 			copy(minifiedJson);
 		} else {
 			copy(formattedJson);
 		}
-	}
+	}, [viewMode, minifiedJson, formattedJson, copy]);
 
-	function handleClear() {
+	const handleClear = useCallback(() => {
 		setInput('');
-	}
+	}, []);
+
+	// Keyboard shortcuts
+	useKeyboardShortcuts([
+		{ key: 'f', modifiers: ['ctrl', 'shift'], callback: handleFormat, disabled: !parseResult.valid },
+		{ key: 'm', modifiers: ['ctrl', 'shift'], callback: handleMinify, disabled: !parseResult.valid },
+	]);
 
 	function handleSample() {
 		const sample = {

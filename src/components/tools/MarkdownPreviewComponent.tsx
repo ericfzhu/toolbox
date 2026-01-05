@@ -4,7 +4,7 @@ import { IconCopy, IconDownload } from '@tabler/icons-react';
 import { marked } from 'marked';
 import { useCallback, useMemo, useState } from 'react';
 
-import { useClipboard, useDownload } from '@/hooks';
+import { useClipboard, useDownload, useKeyboardShortcuts } from '@/hooks';
 
 const SAMPLE_MARKDOWN = `# Welcome to Markdown Preview
 
@@ -107,6 +107,12 @@ ${htmlContent}
 	const handleClear = useCallback(() => {
 		setMarkdown('');
 	}, []);
+
+	// Keyboard shortcuts
+	useKeyboardShortcuts([
+		{ key: 's', modifiers: ['ctrl'], callback: handleCopyHtml, disabled: !htmlContent },
+		{ key: 'd', modifiers: ['ctrl'], callback: handleDownloadHtml, disabled: !htmlContent },
+	]);
 
 	// Word/character count
 	const wordCount = markdown.trim() ? markdown.trim().split(/\s+/).length : 0;
