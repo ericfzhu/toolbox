@@ -203,7 +203,7 @@ export default function ImageConverterComponent() {
 			</div>
 
 			{originalImage && (
-				<div className="relative text-5xl text-white w-full">
+				<div className="relative text-2xl sm:text-3xl md:text-5xl text-white w-full">
 					<Image
 						src={originalImage}
 						alt="Original"
@@ -214,7 +214,7 @@ export default function ImageConverterComponent() {
 							width: imageDimensions.width >= imageDimensions.height ? '60vh' : 'auto',
 							height: imageDimensions.height > imageDimensions.width ? '60vh' : 'auto',
 							maxWidth: '100%',
-							maxHeight: '60vh',
+							maxHeight: '50vh',
 							aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
 						}}
 						unoptimized
@@ -235,18 +235,18 @@ export default function ImageConverterComponent() {
 
 					<div className="absolute top-2 right-2 space-y-1 flex flex-col items-end drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">
 						{['width', 'height'].map((dimension) => (
-							<div key={dimension} className="flex items-center space-x-2 w-fit">
+							<div key={dimension} className="flex items-center space-x-1 sm:space-x-2 w-fit">
 								<span className="">{dimension.charAt(0).toUpperCase()}:</span>
 								<div className="relative flex items-center">
 									<input
 										type="number"
 										value={imageDimensions[dimension as keyof ImageDimensions]}
 										onChange={(e) => handleDimensionChange(dimension as 'width' | 'height', parseInt(e.target.value))}
-										className="bg-transparent w-32 text-right focus:outline-none focus:border-zinc-500 
+										className="bg-transparent w-20 sm:w-32 text-right focus:outline-none focus:border-zinc-500
                                [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 									/>
 									<div
-										className="flex flex-col ml-1 cursor-ns-resize"
+										className="flex-col ml-1 cursor-ns-resize hidden sm:flex"
 										onMouseDown={(e) => handleDragStart(e, dimension as 'width' | 'height')}>
 										<IconChevronUp size={16} className="w-8 h-8" />
 										<IconChevronDown size={16} className="w-8 h-8" />

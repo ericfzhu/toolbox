@@ -238,41 +238,41 @@ export default function JsonToolComponent() {
 				<button
 					onClick={handleFormat}
 					disabled={!parseResult.valid || !input.trim()}
-					className="bg-zinc-700 hover:bg-zinc-800 disabled:bg-zinc-300 text-white px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
+					className="bg-zinc-700 hover:bg-zinc-800 disabled:bg-zinc-300 text-white px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-2 text-sm sm:text-base">
 					Format
-					<span className="text-xs text-zinc-400">⌘⇧F</span>
+					<span className="text-xs text-zinc-400 hidden sm:inline">⌘⇧F</span>
 				</button>
 				<button
 					onClick={handleMinify}
 					disabled={!parseResult.valid || !input.trim()}
-					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
+					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-2 text-sm sm:text-base">
 					Minify
-					<span className="text-xs text-zinc-400">⌘⇧M</span>
+					<span className="text-xs text-zinc-400 hidden sm:inline">⌘⇧M</span>
 				</button>
 				<button
 					onClick={handleCopy}
 					disabled={!parseResult.valid || !input.trim()}
-					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
+					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-2 text-sm sm:text-base">
 					{copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
 					{copied ? 'Copied!' : 'Copy'}
 				</button>
-				<button onClick={handleClear} className="bg-zinc-200 hover:bg-zinc-300 px-4 py-2 rounded-sm transition-colors">
+				<button onClick={handleClear} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
 					Clear
 				</button>
-				<button onClick={handleSample} className="bg-zinc-200 hover:bg-zinc-300 px-4 py-2 rounded-sm transition-colors">
+				<button onClick={handleSample} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
 					Sample
 				</button>
 
-				<div className="flex-1" />
+				<div className="hidden sm:block flex-1" />
 
 				{/* Indent size */}
 				<div className="flex items-center gap-2">
-					<label className="text-sm text-zinc-600">Indent:</label>
+					<label className="text-sm text-zinc-600 hidden sm:inline">Indent:</label>
 					<div className="border border-zinc-300 rounded-sm pr-2">
 						<select
 							value={indentSize}
 							onChange={(e) => setIndentSize(Number(e.target.value))}
-							className="pl-4 pr-2 h-10 bg-transparent border-none outline-none cursor-pointer">
+							className="pl-2 sm:pl-4 pr-2 h-10 bg-transparent border-none outline-none cursor-pointer text-sm sm:text-base">
 							<option value={2}>2 spaces</option>
 							<option value={4}>4 spaces</option>
 							<option value={1}>1 tab</option>
@@ -284,36 +284,38 @@ export default function JsonToolComponent() {
 				<div className="flex border border-zinc-300 rounded-sm overflow-hidden">
 					<button
 						onClick={() => setViewMode('formatted')}
-						className={`px-4 py-2 ${viewMode === 'formatted' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
-						Formatted
+						className={`px-2 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'formatted' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						<span className="hidden sm:inline">Formatted</span>
+						<span className="sm:hidden">Fmt</span>
 					</button>
 					<button
 						onClick={() => setViewMode('tree')}
-						className={`px-4 py-2 ${viewMode === 'tree' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`px-2 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'tree' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
 						Tree
 					</button>
 					<button
 						onClick={() => setViewMode('minified')}
-						className={`px-4 py-2 ${viewMode === 'minified' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
-						Minified
+						className={`px-2 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'minified' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						<span className="hidden sm:inline">Minified</span>
+						<span className="sm:hidden">Min</span>
 					</button>
 				</div>
 			</div>
 
 			{/* Status bar */}
 			{input.trim() && (
-				<div className="flex items-center gap-4 text-sm">
+				<div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
 					{parseResult.valid ? (
 						<>
 							<span className="text-green-600 flex items-center gap-1">
 								<IconCheck size={14} /> Valid JSON
 							</span>
 							{stats && (
-								<span className="text-zinc-500">
+								<span className="text-zinc-500 hidden sm:inline">
 									{stats.objects} objects, {stats.arrays} arrays, {stats.strings} strings, {stats.numbers} numbers
 								</span>
 							)}
-							<span className="text-zinc-400">{formattedJson.length} chars formatted / {minifiedJson.length} chars minified</span>
+							<span className="text-zinc-400">{formattedJson.length} / {minifiedJson.length} chars</span>
 						</>
 					) : (
 						<span className="text-red-600">Invalid JSON: {parseResult.error}</span>
@@ -322,7 +324,7 @@ export default function JsonToolComponent() {
 			)}
 
 			{/* Main content */}
-			<div className="flex gap-4 flex-1">
+			<div className="flex flex-col md:flex-row gap-4 flex-1">
 				{/* Input */}
 				<div className="flex-1 flex flex-col gap-2">
 					<label className="text-sm font-medium text-zinc-700">Input</label>
@@ -331,7 +333,7 @@ export default function JsonToolComponent() {
 						onChange={(e) => setInput(e.target.value)}
 						placeholder="Paste your JSON here..."
 						spellCheck={false}
-						className={`w-full h-[60vh] p-3 border rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 ${
+						className={`w-full h-[40vh] md:h-[60vh] p-3 border rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 ${
 							input.trim() && !parseResult.valid
 								? 'border-red-300 focus:ring-red-300 bg-red-50'
 								: 'border-zinc-300 focus:ring-zinc-400'
@@ -345,7 +347,7 @@ export default function JsonToolComponent() {
 						Output ({viewMode === 'tree' ? 'Tree View' : viewMode === 'minified' ? 'Minified' : 'Formatted'})
 					</label>
 					{viewMode === 'tree' ? (
-						<div className="w-full h-[60vh] p-3 border border-zinc-300 rounded-sm font-mono text-sm overflow-auto bg-white">
+						<div className="w-full h-[40vh] md:h-[60vh] p-3 border border-zinc-300 rounded-sm font-mono text-sm overflow-auto bg-white">
 							{parseResult.valid && parseResult.data !== null ? (
 								<JsonNode data={parseResult.data} />
 							) : (
@@ -358,7 +360,7 @@ export default function JsonToolComponent() {
 							readOnly
 							placeholder="Output will appear here..."
 							spellCheck={false}
-							className="w-full h-[60vh] p-3 border border-zinc-300 rounded-sm font-mono text-sm resize-none bg-zinc-50 focus:outline-none"
+							className="w-full h-[40vh] md:h-[60vh] p-3 border border-zinc-300 rounded-sm font-mono text-sm resize-none bg-zinc-50 focus:outline-none"
 						/>
 					)}
 				</div>

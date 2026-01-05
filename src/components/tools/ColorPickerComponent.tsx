@@ -228,18 +228,18 @@ export default function ColorPickerComponent() {
 	}
 
 	return (
-		<div className="flex gap-4">
-			<div className="w-64 space-y-4">
+		<div className="flex flex-col md:flex-row gap-4">
+			<div className="w-full md:w-64 space-y-4 order-2 md:order-1">
 				<div
 					className={`border-2 border-dashed p-4 text-center ${isDragging ? 'border-zinc-500 bg-zinc-100' : 'border-zinc-300'}`}
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}>
 					<input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
-					<button onClick={openFilePicker} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4">
+					<button onClick={openFilePicker} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4 text-sm sm:text-base">
 						Select Image
 					</button>
-					<p className="mt-2 text-sm text-zinc-600">or drag and drop an image here</p>
+					<p className="mt-2 text-xs sm:text-sm text-zinc-600">or drag and drop an image here</p>
 				</div>
 
 				{selectedColors.map((color, index) => (
@@ -305,14 +305,14 @@ export default function ColorPickerComponent() {
 			</div>
 
 			{!image ? (
-				<div className="flex-1 flex items-center justify-center">
-					<div className="border-2 border-dashed border-zinc-300 rounded-sm w-[50vw] h-[50vh] flex items-center justify-center text-zinc-500">
+				<div className="flex-1 flex items-center justify-center order-1 md:order-2">
+					<div className="border-2 border-dashed border-zinc-300 rounded-sm w-full md:w-[50vw] h-[40vh] md:h-[50vh] flex items-center justify-center text-zinc-500 text-sm sm:text-base">
 						Upload an image to get started
 					</div>
 				</div>
 			) : (
-				<div className="flex-1 flex flex-col items-center">
-					<div className="relative" style={{ maxWidth: '70vw', maxHeight: '70vh' }}>
+				<div className="flex-1 flex flex-col items-center order-1 md:order-2">
+					<div className="relative w-full" style={{ maxWidth: '70vw', maxHeight: '50vh' }}>
 						<canvas
 							ref={canvasRef}
 							onClick={handleImageClick}

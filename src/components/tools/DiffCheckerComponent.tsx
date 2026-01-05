@@ -465,14 +465,14 @@ export default function DiffCheckerComponent() {
 			<style dangerouslySetInnerHTML={{ __html: highlightStyles }} />
 			{/* Input Section */}
 			{!showDiff && (
-				<div className="flex gap-4 w-full">
+				<div className="flex flex-col md:flex-row gap-4 w-full">
 					<div className="flex-1 flex flex-col gap-2">
 						<label className="text-sm font-medium text-zinc-700">Original Text</label>
 						<textarea
 							value={oldText}
 							onChange={(e) => setOldText(e.target.value)}
 							placeholder="Paste original text here..."
-							className="w-full h-80 p-3 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400"
+							className="w-full h-48 md:h-80 p-3 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400"
 						/>
 					</div>
 					<div className="flex-1 flex flex-col gap-2">
@@ -481,14 +481,14 @@ export default function DiffCheckerComponent() {
 							value={newText}
 							onChange={(e) => setNewText(e.target.value)}
 							placeholder="Paste modified text here..."
-							className="w-full h-80 p-3 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400"
+							className="w-full h-48 md:h-80 p-3 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400"
 						/>
 					</div>
 				</div>
 			)}
 
 			{/* Controls */}
-			<div className="flex gap-2 items-center">
+			<div className="flex flex-wrap gap-2 items-center">
 				{!showDiff ? (
 					<button
 						onClick={handleCompare}
@@ -498,20 +498,21 @@ export default function DiffCheckerComponent() {
 					</button>
 				) : (
 					<>
-						<button onClick={() => setShowDiff(false)} className="bg-zinc-200 hover:bg-zinc-300 px-4 py-2 rounded-sm transition-colors">
+						<button onClick={() => setShowDiff(false)} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
 							Edit
 						</button>
-						<button onClick={handleCopyDiff} className="bg-zinc-200 hover:bg-zinc-300 px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
+						<button onClick={handleCopyDiff} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
 							<IconCopy size={16} />
-							Copy Diff
+							<span className="hidden sm:inline">Copy Diff</span>
+							<span className="sm:hidden">Copy</span>
 						</button>
-						<button onClick={handleClear} className="bg-zinc-200 hover:bg-zinc-300 px-4 py-2 rounded-sm transition-colors">
+						<button onClick={handleClear} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
 							Clear
 						</button>
 						<select
 							value={language}
 							onChange={(e) => setLanguage(e.target.value as Language)}
-							className="bg-zinc-200 hover:bg-zinc-300 px-4 h-10 rounded-sm transition-colors border-none cursor-pointer"
+							className="bg-zinc-200 hover:bg-zinc-300 px-2 sm:px-4 h-10 rounded-sm transition-colors border-none cursor-pointer text-sm sm:text-base"
 						>
 							{LANGUAGES.map((lang) => (
 								<option key={lang.value} value={lang.value}>
@@ -522,16 +523,16 @@ export default function DiffCheckerComponent() {
 								</option>
 							))}
 						</select>
-						<div className="flex-1" />
+						<div className="hidden sm:block flex-1" />
 						<div className="flex border border-zinc-300 rounded-sm overflow-hidden">
 							<button
 								onClick={() => setViewMode('split')}
-								className={`px-4 py-2 ${viewMode === 'split' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+								className={`px-3 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'split' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
 								Split
 							</button>
 							<button
 								onClick={() => setViewMode('unified')}
-								className={`px-4 py-2 ${viewMode === 'unified' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+								className={`px-3 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'unified' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
 								Unified
 							</button>
 						</div>
@@ -545,9 +546,9 @@ export default function DiffCheckerComponent() {
 			{/* Diff Result */}
 			{showDiff && diffResult.length > 0 && (
 				<div className="border border-zinc-300 rounded-sm overflow-hidden flex">
-					<div className="flex-1 min-w-0">
+					<div className="flex-1 min-w-0 overflow-x-auto">
 						{viewMode === 'split' ? (
-							<div className="flex">
+							<div className="flex min-w-[600px] md:min-w-0">
 								{/* Old side */}
 								<div className="flex-1 border-r border-zinc-300 min-w-0">
 									<div className="bg-zinc-100 px-3 py-1 text-sm font-medium border-b border-zinc-300 text-red-700">Original</div>
@@ -651,14 +652,16 @@ export default function DiffCheckerComponent() {
 							</div>
 						)}
 					</div>
-					{/* Minimap */}
-					<Minimap
-						diffResult={diffResult}
-						viewMode={viewMode}
-						scrollContainerRef={viewMode === 'split' ? leftScrollRef : unifiedScrollRef}
-						secondScrollContainerRef={viewMode === 'split' ? rightScrollRef : undefined}
-						headerHeight={viewMode === 'split' ? 29 : 0}
-					/>
+					{/* Minimap - hidden on mobile */}
+					<div className="hidden md:block">
+						<Minimap
+							diffResult={diffResult}
+							viewMode={viewMode}
+							scrollContainerRef={viewMode === 'split' ? leftScrollRef : unifiedScrollRef}
+							secondScrollContainerRef={viewMode === 'split' ? rightScrollRef : undefined}
+							headerHeight={viewMode === 'split' ? 29 : 0}
+						/>
+					</div>
 				</div>
 			)}
 

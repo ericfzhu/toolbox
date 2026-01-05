@@ -25,14 +25,14 @@ export default function WordCounterComponent() {
 		<div className="flex justify-center items-center">
 			<div className="w-full max-w-4xl bg-white relative">
 				<textarea
-					className="w-full p-2 border border-zinc-300 mb-4 bg-transparent z-10 h-[calc(100vh-30rem)]"
+					className="w-full p-2 border border-zinc-300 mb-4 bg-transparent z-10 h-[50vh] sm:h-[calc(100vh-30rem)]"
 					value={text}
 					onChange={(e) => setText(e.target.value)}
 					placeholder="Type or paste your text here..."
 				/>
 				<div
 					className={cn(
-						'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-opacity-80 p-4 text-7xl opacity-70 text-[#4647F1] select-none pointer-events-none',
+						'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-opacity-80 p-2 sm:p-4 text-4xl sm:text-5xl md:text-7xl opacity-70 text-[#4647F1] select-none pointer-events-none',
 						courier_prime.className,
 					)}>
 					<p>W {countWords(text)}</p>

@@ -125,53 +125,55 @@ ${htmlContent}
 				<button
 					onClick={handleCopyHtml}
 					disabled={!htmlContent}
-					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
+					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
 					<IconCopy size={16} />
-					Copy HTML
-					<span className="text-xs text-zinc-400 ml-1">⌘S</span>
+					<span className="hidden sm:inline">Copy HTML</span>
+					<span className="sm:hidden">Copy</span>
+					<span className="text-xs text-zinc-400 ml-1 hidden sm:inline">⌘S</span>
 				</button>
 				<button
 					onClick={handleDownloadHtml}
 					disabled={!htmlContent}
-					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-4 py-2 rounded-sm transition-colors flex items-center gap-2">
+					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
 					<IconDownload size={16} />
-					Download HTML
-					<span className="text-xs text-zinc-400 ml-1">⌘D</span>
+					<span className="hidden sm:inline">Download HTML</span>
+					<span className="sm:hidden">Download</span>
+					<span className="text-xs text-zinc-400 ml-1 hidden sm:inline">⌘D</span>
 				</button>
-				<button onClick={handleLoadSample} className="bg-zinc-200 hover:bg-zinc-300 px-4 py-2 rounded-sm transition-colors">
-					Load Sample
+				<button onClick={handleLoadSample} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
+					Sample
 				</button>
-				<button onClick={handleClear} className="bg-zinc-200 hover:bg-zinc-300 px-4 py-2 rounded-sm transition-colors">
+				<button onClick={handleClear} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
 					Clear
 				</button>
 
-				<div className="flex-1" />
+				<div className="hidden sm:block flex-1" />
 
-				<span className="text-sm text-zinc-500">
+				<span className="text-xs sm:text-sm text-zinc-500">
 					{wordCount} words, {charCount} chars
 				</span>
 
 				<div className="flex border border-zinc-300 rounded-sm overflow-hidden">
 					<button
 						onClick={() => setViewMode('split')}
-						className={`px-3 py-1 text-sm ${viewMode === 'split' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`px-2 sm:px-3 py-1 text-sm ${viewMode === 'split' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
 						Split
 					</button>
 					<button
 						onClick={() => setViewMode('preview')}
-						className={`px-3 py-1 text-sm ${viewMode === 'preview' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`px-2 sm:px-3 py-1 text-sm ${viewMode === 'preview' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
 						Preview
 					</button>
 					<button
 						onClick={() => setViewMode('html')}
-						className={`px-3 py-1 text-sm ${viewMode === 'html' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`px-2 sm:px-3 py-1 text-sm ${viewMode === 'html' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
 						HTML
 					</button>
 				</div>
 			</div>
 
 			{/* Editor and Preview */}
-			<div className="flex gap-4">
+			<div className="flex flex-col md:flex-row gap-4">
 				{/* Editor */}
 				{(viewMode === 'split' || viewMode === 'html') && (
 					<div className={`flex flex-col gap-2 ${viewMode === 'split' ? 'flex-1' : 'flex-1'}`}>
@@ -181,7 +183,7 @@ ${htmlContent}
 							onChange={(e) => setMarkdown(e.target.value)}
 							placeholder="Write your markdown here..."
 							spellCheck={false}
-							className="w-full p-4 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400 h-[60vh]"
+							className="w-full p-3 sm:p-4 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400 h-[40vh] md:h-[60vh]"
 						/>
 					</div>
 				)}
@@ -191,7 +193,7 @@ ${htmlContent}
 					<div className={`flex flex-col gap-2 ${viewMode === 'split' ? 'flex-1' : 'flex-1'}`}>
 						{viewMode === 'split' && <label className="text-sm font-medium text-zinc-700">Preview</label>}
 						<div
-							className="w-full p-4 border border-zinc-300 rounded-sm overflow-auto bg-white h-[60vh] prose prose-zinc max-w-none
+							className="w-full p-3 sm:p-4 border border-zinc-300 rounded-sm overflow-auto bg-white h-[40vh] md:h-[60vh] prose prose-zinc max-w-none prose-sm sm:prose-base
 								prose-headings:mt-4 prose-headings:mb-2
 								prose-p:my-2
 								prose-pre:bg-zinc-100 prose-pre:text-zinc-800
@@ -214,7 +216,7 @@ ${htmlContent}
 						<textarea
 							value={htmlContent}
 							readOnly
-							className="w-full p-4 border border-zinc-300 rounded-sm font-mono text-sm resize-none bg-zinc-50 h-[60vh]"
+							className="w-full p-3 sm:p-4 border border-zinc-300 rounded-sm font-mono text-sm resize-none bg-zinc-50 h-[40vh] md:h-[60vh]"
 						/>
 					</div>
 				)}

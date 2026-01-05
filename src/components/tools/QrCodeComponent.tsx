@@ -86,16 +86,16 @@ export default function QrCodeComponent() {
 	useKeyboardShortcut({ key: 's', modifiers: ['ctrl'], callback: handleDownloadPng, disabled: !qrDataUrl });
 
 	return (
-		<div className="flex gap-8 w-full max-w-4xl mx-auto">
+		<div className="flex flex-col md:flex-row gap-6 md:gap-8 w-full max-w-4xl mx-auto">
 			{/* Controls */}
-			<div className="w-72 flex-shrink-0 space-y-4">
+			<div className="w-full md:w-72 flex-shrink-0 space-y-4 order-2 md:order-1">
 				<div className="space-y-2">
 					<label className="block text-sm font-medium text-zinc-700">Text or URL</label>
 					<textarea
 						value={text}
 						onChange={(e) => setText(e.target.value)}
 						placeholder="Enter text or URL..."
-						className="w-full h-32 p-3 border border-zinc-300 rounded-sm text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400"
+						className="w-full h-24 md:h-32 p-3 border border-zinc-300 rounded-sm text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400"
 					/>
 				</div>
 
@@ -183,7 +183,7 @@ export default function QrCodeComponent() {
 			</div>
 
 			{/* Preview */}
-			<div className="flex-1 min-w-0 flex items-center justify-center overflow-hidden">
+			<div className="flex-1 min-w-0 flex items-center justify-center overflow-hidden order-1 md:order-2">
 				{error ? (
 					<div className="text-red-600 text-sm">{error}</div>
 				) : qrDataUrl ? (
@@ -191,10 +191,10 @@ export default function QrCodeComponent() {
 						className="border border-zinc-200 rounded-sm p-4"
 						style={{ backgroundColor: backgroundColor }}>
 						{/* eslint-disable-next-line @next/next/no-img-element */}
-						<img src={qrDataUrl} alt="QR Code" width={size} height={size} />
+						<img src={qrDataUrl} alt="QR Code" width={size} height={size} className="max-w-full h-auto" style={{ maxWidth: `${size}px` }} />
 					</div>
 				) : (
-					<div className="border-2 border-dashed border-zinc-300 rounded-sm p-16 text-zinc-400 text-center">
+					<div className="border-2 border-dashed border-zinc-300 rounded-sm p-8 sm:p-16 text-zinc-400 text-center text-sm sm:text-base">
 						<p>Enter text or URL to generate QR code</p>
 					</div>
 				)}
