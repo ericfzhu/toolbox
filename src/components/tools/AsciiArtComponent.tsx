@@ -4,6 +4,9 @@ import { Download } from 'lucide-react';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { clamp, rgbToGrayscale } from '@/lib/color';
+import { ImageDimensions } from '@/lib/types';
+
 // Character sets for ASCII art
 const CHAR_SETS = {
 	detailed: '$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,"^`\'.',
@@ -13,11 +16,6 @@ const CHAR_SETS = {
 	hex: '0123456789ABCDEF',
 };
 
-interface ImageDimensions {
-	width: number;
-	height: number;
-}
-
 interface AsciiChar {
 	char: string;
 	color: {
@@ -25,6 +23,107 @@ interface AsciiChar {
 		g: number;
 		b: number;
 	};
+}
+
+// Pure functions moved outside component to avoid recreating on each render
+function applyFloydSteinbergDithering(data: number[], width: number, height: number, levels: number): number[] {
+	const result = [...data];
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			const idx = y * width + x;
+			const oldPixel = result[idx];
+			const newPixel = Math.round((oldPixel / 255) * (levels - 1)) * (255 / (levels - 1));
+			result[idx] = newPixel;
+
+			const error = oldPixel - newPixel;
+
+			if (x + 1 < width) {
+				result[idx + 1] = clamp(result[idx + 1] + error * (7 / 16), 0, 255);
+			}
+			if (y + 1 < height) {
+				if (x > 0) {
+					result[idx + width - 1] = clamp(result[idx + width - 1] + error * (3 / 16), 0, 255);
+				}
+				result[idx + width] = clamp(result[idx + width] + error * (5 / 16), 0, 255);
+				if (x + 1 < width) {
+					result[idx + width + 1] = clamp(result[idx + width + 1] + error * (1 / 16), 0, 255);
+				}
+			}
+		}
+	}
+	return result;
+}
+
+function applyAtkinsonDithering(data: number[], width: number, height: number, levels: number): number[] {
+	const result = [...data];
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			const idx = y * width + x;
+			const oldPixel = result[idx];
+			const newPixel = Math.round((oldPixel / 255) * (levels - 1)) * (255 / (levels - 1));
+			result[idx] = newPixel;
+
+			const error = Math.floor((oldPixel - newPixel) / 8);
+
+			const neighbors = [
+				[x + 1, y],
+				[x + 2, y],
+				[x - 1, y + 1],
+				[x, y + 1],
+				[x + 1, y + 1],
+				[x, y + 2],
+			];
+
+			neighbors.forEach(([nx, ny]) => {
+				if (nx >= 0 && nx < width && ny < height) {
+					const nidx = ny * width + nx;
+					result[nidx] = clamp(result[nidx] + error, 0, 255);
+				}
+			});
+		}
+	}
+	return result;
+}
+
+function applySobelEdgeDetection(data: number[], width: number, height: number, threshold: number): number[] {
+	const result = new Array(width * height).fill(255);
+	for (let y = 1; y < height - 1; y++) {
+		for (let x = 1; x < width - 1; x++) {
+			const idx = y * width + x;
+			const surroundingPixels = [
+				data[idx - width - 1],
+				data[idx - width],
+				data[idx - width + 1],
+				data[idx - 1],
+				data[idx],
+				data[idx + 1],
+				data[idx + width - 1],
+				data[idx + width],
+				data[idx + width + 1],
+			];
+
+			// Sobel operators
+			const gx =
+				-1 * surroundingPixels[0] +
+				1 * surroundingPixels[2] +
+				-2 * surroundingPixels[3] +
+				2 * surroundingPixels[5] +
+				-1 * surroundingPixels[6] +
+				1 * surroundingPixels[8];
+
+			const gy =
+				-1 * surroundingPixels[0] +
+				-2 * surroundingPixels[1] +
+				-1 * surroundingPixels[2] +
+				1 * surroundingPixels[6] +
+				2 * surroundingPixels[7] +
+				1 * surroundingPixels[8];
+
+			const magnitude = Math.sqrt(gx * gx + gy * gy);
+			result[idx] = magnitude > threshold ? 0 : 255;
+		}
+	}
+	return result;
 }
 
 export default function EnhancedAsciiArtComponent() {
@@ -58,12 +157,6 @@ export default function EnhancedAsciiArtComponent() {
 	const [comparePosition, setComparePosition] = useState<number>(50);
 	const [dragState, setDragState] = useState<'upload' | 'divider' | null>(null);
 
-	// Helper function to clamp values
-	const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
-
-	// Convert RGB to grayscale
-	const toGrayScale = (r: number, g: number, b: number): number => 0.299 * r + 0.587 * g + 0.114 * b;
-
 	// Handle file upload
 	const handleFileUpload = useCallback((file: File) => {
 		if (!file.type.startsWith('image/')) return;
@@ -82,109 +175,6 @@ export default function EnhancedAsciiArtComponent() {
 		};
 		reader.readAsDataURL(file);
 	}, []);
-
-	// Apply Floyd-Steinberg dithering
-	const applyFloydSteinbergDithering = (data: number[], width: number, height: number, levels: number) => {
-		const result = [...data];
-		for (let y = 0; y < height; y++) {
-			for (let x = 0; x < width; x++) {
-				const idx = y * width + x;
-				const oldPixel = result[idx];
-				const newPixel = Math.round((oldPixel / 255) * (levels - 1)) * (255 / (levels - 1));
-				result[idx] = newPixel;
-
-				const error = oldPixel - newPixel;
-
-				if (x + 1 < width) {
-					result[idx + 1] = clamp(result[idx + 1] + error * (7 / 16), 0, 255);
-				}
-				if (y + 1 < height) {
-					if (x > 0) {
-						result[idx + width - 1] = clamp(result[idx + width - 1] + error * (3 / 16), 0, 255);
-					}
-					result[idx + width] = clamp(result[idx + width] + error * (5 / 16), 0, 255);
-					if (x + 1 < width) {
-						result[idx + width + 1] = clamp(result[idx + width + 1] + error * (1 / 16), 0, 255);
-					}
-				}
-			}
-		}
-		return result;
-	};
-
-	// Apply Atkinson dithering
-	const applyAtkinsonDithering = (data: number[], width: number, height: number, levels: number) => {
-		const result = [...data];
-		for (let y = 0; y < height; y++) {
-			for (let x = 0; x < width; x++) {
-				const idx = y * width + x;
-				const oldPixel = result[idx];
-				const newPixel = Math.round((oldPixel / 255) * (levels - 1)) * (255 / (levels - 1));
-				result[idx] = newPixel;
-
-				const error = Math.floor((oldPixel - newPixel) / 8);
-
-				const neighbors = [
-					[x + 1, y],
-					[x + 2, y],
-					[x - 1, y + 1],
-					[x, y + 1],
-					[x + 1, y + 1],
-					[x, y + 2],
-				];
-
-				neighbors.forEach(([nx, ny]) => {
-					if (nx >= 0 && nx < width && ny < height) {
-						const nidx = ny * width + nx;
-						result[nidx] = clamp(result[nidx] + error, 0, 255);
-					}
-				});
-			}
-		}
-		return result;
-	};
-
-	// Apply Sobel edge detection
-	const applySobelEdgeDetection = (data: number[], width: number, height: number, threshold: number) => {
-		const result = new Array(width * height).fill(255);
-		for (let y = 1; y < height - 1; y++) {
-			for (let x = 1; x < width - 1; x++) {
-				const idx = y * width + x;
-				const surroundingPixels = [
-					data[idx - width - 1],
-					data[idx - width],
-					data[idx - width + 1],
-					data[idx - 1],
-					data[idx],
-					data[idx + 1],
-					data[idx + width - 1],
-					data[idx + width],
-					data[idx + width + 1],
-				];
-
-				// Sobel operators
-				const gx =
-					-1 * surroundingPixels[0] +
-					1 * surroundingPixels[2] +
-					-2 * surroundingPixels[3] +
-					2 * surroundingPixels[5] +
-					-1 * surroundingPixels[6] +
-					1 * surroundingPixels[8];
-
-				const gy =
-					-1 * surroundingPixels[0] +
-					-2 * surroundingPixels[1] +
-					-1 * surroundingPixels[2] +
-					1 * surroundingPixels[6] +
-					2 * surroundingPixels[7] +
-					1 * surroundingPixels[8];
-
-				const magnitude = Math.sqrt(gx * gx + gy * gy);
-				result[idx] = magnitude > threshold ? 0 : 255;
-			}
-		}
-		return result;
-	};
 
 	// Generate ASCII art
 	const generateAscii = useCallback(() => {
@@ -222,7 +212,7 @@ export default function EnhancedAsciiArtComponent() {
 			// Convert to grayscale and apply adjustments
 			let grayData = new Array(asciiWidth * asciiHeight);
 			for (let i = 0; i < data.length; i += 4) {
-				let lum = toGrayScale(data[i], data[i + 1], data[i + 2]);
+				let lum = rgbToGrayscale(data[i], data[i + 1], data[i + 2]);
 				if (settings.isInverted) lum = 255 - lum;
 				lum = clamp(contrastFactor * (lum - 128) + 128 + settings.brightness, 0, 255);
 				grayData[i / 4] = lum;
@@ -279,7 +269,7 @@ export default function EnhancedAsciiArtComponent() {
 			setIsGenerating(false);
 		};
 		img.src = originalImage;
-	}, [originalImage, imageDimensions, settings, toGrayScale]);
+	}, [originalImage, imageDimensions, settings]);
 
 	// Render ASCII art to canvas
 	const renderAsciiToCanvas = useCallback(() => {
@@ -324,13 +314,13 @@ export default function EnhancedAsciiArtComponent() {
 				if (settings.isColor) {
 					ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
 				} else {
-					const gray = toGrayScale(color.r, color.g, color.b);
+					const gray = rgbToGrayscale(color.r, color.g, color.b);
 					ctx.fillStyle = `rgb(${gray}, ${gray}, ${gray})`;
 				}
 				ctx.fillText(char, offsetX + x * charWidth, offsetY + y * charHeight);
 			}
 		}
-	}, [asciiData, imageDimensions, settings.isColor, toGrayScale]);
+	}, [asciiData, imageDimensions, settings.isColor]);
 
 	const handleDownload = useCallback(
 		(type: 'txt' | 'jpg-bw' | 'jpg-color' | 'webp-bw' | 'webp-color') => {
@@ -394,7 +384,7 @@ export default function EnhancedAsciiArtComponent() {
 					if (type.includes('color')) {
 						ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
 					} else {
-						const gray = toGrayScale(color.r, color.g, color.b);
+						const gray = rgbToGrayscale(color.r, color.g, color.b);
 						ctx.fillStyle = `rgb(${gray}, ${gray}, ${gray})`;
 					}
 
@@ -426,7 +416,7 @@ export default function EnhancedAsciiArtComponent() {
 				0.95, // Quality
 			);
 		},
-		[asciiData, imageDimensions, toGrayScale],
+		[asciiData, imageDimensions],
 	);
 
 	// Update canvas on changes

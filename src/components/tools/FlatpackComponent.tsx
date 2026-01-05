@@ -1,9 +1,11 @@
 'use client';
 
 import { IconCopy, IconDownload } from '@tabler/icons-react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 
-const codeFileExtensions = [
+import { useClipboard, useDownload } from '@/hooks';
+
+const CODE_FILE_EXTENSIONS = [
 	'js',
 	'jsx',
 	'ts',
@@ -29,10 +31,47 @@ const codeFileExtensions = [
 	'kt',
 ];
 
+function isCodeFile(fileName: string): boolean {
+	const parts = fileName.split('.');
+	if (parts.length < 2) return false;
+	const extension = parts.pop()?.toLowerCase();
+	return extension ? CODE_FILE_EXTENSIONS.includes(extension) : false;
+}
+
+async function processFiles(
+	dirHandle: FileSystemDirectoryHandle,
+	path: string = '',
+	accumulatedContent: string = '',
+): Promise<string> {
+	try {
+		for await (const [name, handle] of (dirHandle as any).entries()) {
+			const fullPath = `${path}/${name}`;
+			if (handle.kind === 'file') {
+				if (isCodeFile(name)) {
+					try {
+						const fileData = await handle.getFile();
+						const text = await fileData.text();
+						accumulatedContent += `// File: ${fullPath}\n\n${text}\n\n`;
+					} catch (fileError) {
+						console.error('Error reading file:', name, fileError);
+					}
+				}
+			} else if (handle.kind === 'directory') {
+				accumulatedContent = await processFiles(handle as FileSystemDirectoryHandle, fullPath, accumulatedContent);
+			}
+		}
+	} catch (error) {
+		console.error('Error reading directory:', dirHandle.name, error);
+	}
+	return accumulatedContent;
+}
+
 export default function CodeAggregatorComponent() {
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [aggregatedContent, setAggregatedContent] = useState('');
-	const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+	const { copy } = useClipboard();
+	const { downloadText } = useDownload();
 
 	const handleFolderSelect = useCallback(async () => {
 		if (!(window as any).showDirectoryPicker) {
@@ -52,54 +91,17 @@ export default function CodeAggregatorComponent() {
 		}
 	}, []);
 
-	const isCodeFile = (fileName: string) => {
-		const parts = fileName.split('.');
-		if (parts.length < 2) return false;
-		const extension = parts.pop()?.toLowerCase();
-		return extension && codeFileExtensions.includes(extension);
-	};
-
-	const processFiles = async (dirHandle: FileSystemDirectoryHandle, path: string = '', accumulatedContent: string = ''): Promise<string> => {
-		try {
-			for await (const [name, handle] of (dirHandle as any).entries()) {
-				const fullPath = `${path}/${name}`;
-				if (handle.kind === 'file') {
-					if (isCodeFile(name)) {
-						try {
-							const fileData = await handle.getFile();
-							const text = await fileData.text();
-							accumulatedContent += `// File: ${fullPath}\n\n${text}\n\n`;
-						} catch (fileError) {
-							console.error('Error reading file:', name, fileError);
-						}
-					}
-				} else if (handle.kind === 'directory') {
-					accumulatedContent = await processFiles(handle as FileSystemDirectoryHandle, fullPath, accumulatedContent);
-				}
-			}
-		} catch (error) {
-			console.error('Error reading directory:', dirHandle.name, error);
-		}
-		return accumulatedContent;
-	};
-
 	const handleCopy = useCallback(() => {
 		if (aggregatedContent) {
-			navigator.clipboard.writeText(aggregatedContent).then(() => {
-				// alert('Content copied to clipboard.');
-			});
+			copy(aggregatedContent);
 		}
-	}, [aggregatedContent]);
+	}, [aggregatedContent, copy]);
 
 	const handleDownload = useCallback(() => {
 		if (aggregatedContent) {
-			const blob = new Blob([aggregatedContent], { type: 'text/plain' });
-			const link = document.createElement('a');
-			link.download = 'aggregated-code.txt';
-			link.href = URL.createObjectURL(blob);
-			link.click();
+			downloadText(aggregatedContent, 'aggregated-code.txt');
 		}
-	}, [aggregatedContent]);
+	}, [aggregatedContent, downloadText]);
 
 	return (
 		<div className="flex flex-col gap-4 w-full max-w-3xl mx-auto p-4">
@@ -114,7 +116,7 @@ export default function CodeAggregatorComponent() {
 
 			{aggregatedContent && (
 				<div className="flex flex-col gap-2">
-					<textarea ref={textAreaRef} value={aggregatedContent} readOnly className="w-full h-96 p-2 border border-zinc-300 rounded-sm" />
+					<textarea value={aggregatedContent} readOnly className="w-full h-96 p-2 border border-zinc-300 rounded-sm" />
 					<div className="flex gap-2">
 						<button
 							onClick={handleCopy}

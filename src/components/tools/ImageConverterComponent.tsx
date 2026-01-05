@@ -1,6 +1,7 @@
 'use client';
 
 import { IconChevronDown, IconChevronUp, IconDownload, IconUpload } from '@tabler/icons-react';
+import Image from 'next/image';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 
 interface ImageDimensions {
@@ -20,16 +21,6 @@ export default function ImageConverterComponent() {
 	const [activeDimension, setActiveDimension] = useState<'width' | 'height' | null>(null);
 
 	useEffect(() => {
-		document.addEventListener('mousemove', handleMouseMove);
-		document.addEventListener('mouseup', handleMouseUp);
-
-		return () => {
-			document.removeEventListener('mousemove', handleMouseMove);
-			document.removeEventListener('mouseup', handleMouseUp);
-		};
-	}, [isDragging, activeDimension]);
-
-	useEffect(() => {
 		if (originalImage) {
 			const img = new window.Image();
 			img.onload = () => {
@@ -42,6 +33,36 @@ export default function ImageConverterComponent() {
 	}, [originalImage]);
 
 	useEffect(() => {
+		function handleMouseMove(e: MouseEvent) {
+			if (!isDragging || !activeDimension || !aspectRatio) return;
+
+			const deltaY = dragStartY - e.clientY;
+			const sensitivity = 2;
+			let newValue = imageDimensions[activeDimension] + Math.round(deltaY / sensitivity);
+			newValue = Math.max(1, newValue);
+
+			setImageDimensions(() => {
+				if (activeDimension === 'width') {
+					return {
+						width: newValue,
+						height: Math.round(newValue / aspectRatio),
+					};
+				} else {
+					return {
+						width: Math.round(newValue * aspectRatio),
+						height: newValue,
+					};
+				}
+			});
+
+			setDragStartY(e.clientY);
+		}
+
+		function handleMouseUp() {
+			setIsDragging(false);
+			setActiveDimension(null);
+		}
+
 		document.addEventListener('mousemove', handleMouseMove);
 		document.addEventListener('mouseup', handleMouseUp);
 
@@ -49,7 +70,7 @@ export default function ImageConverterComponent() {
 			document.removeEventListener('mousemove', handleMouseMove);
 			document.removeEventListener('mouseup', handleMouseUp);
 		};
-	}, []);
+	}, [isDragging, activeDimension, aspectRatio, dragStartY, imageDimensions]);
 
 	function handleImageDragOver(event: React.DragEvent<HTMLDivElement>) {
 		event.preventDefault();
@@ -111,38 +132,6 @@ export default function ImageConverterComponent() {
 		setActiveDimension(dimension);
 	}
 
-	function handleMouseMove(e: MouseEvent) {
-		if (!isDragging || !activeDimension || !aspectRatio) return;
-
-		const deltaY = dragStartY - e.clientY;
-		const sensitivity = 2; // Adjust this value to change drag sensitivity
-		let newValue = imageDimensions[activeDimension] + Math.round(deltaY / sensitivity);
-
-		// Ensure the new value is positive
-		newValue = Math.max(1, newValue);
-
-		setImageDimensions((prev) => {
-			if (activeDimension === 'width') {
-				return {
-					width: newValue,
-					height: Math.round(newValue / aspectRatio),
-				};
-			} else {
-				return {
-					width: Math.round(newValue * aspectRatio),
-					height: newValue,
-				};
-			}
-		});
-
-		setDragStartY(e.clientY);
-	}
-
-	function handleMouseUp() {
-		setIsDragging(false);
-		setActiveDimension(null);
-	}
-
 	function handleConvertAndDownload() {
 		if (!originalImage) return;
 
@@ -197,9 +186,11 @@ export default function ImageConverterComponent() {
 
 			{originalImage && (
 				<div className="relative text-5xl text-white w-full">
-					<img
+					<Image
 						src={originalImage}
 						alt="Original"
+						width={imageDimensions.width}
+						height={imageDimensions.height}
 						className="pointer-events-none w-full"
 						style={{
 							width: imageDimensions.width >= imageDimensions.height ? '60vh' : 'auto',
@@ -208,6 +199,7 @@ export default function ImageConverterComponent() {
 							maxHeight: '60vh',
 							aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
 						}}
+						unoptimized
 					/>
 
 					<div className="absolute top-2 left-2 space-y-1 flex flex-col">

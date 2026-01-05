@@ -3,67 +3,74 @@
 import { IconCopy, IconDownload } from '@tabler/icons-react';
 import { FormEvent, useState } from 'react';
 
+import { useClipboard, useDownload } from '@/hooks';
+
 type GeneratorType = 'paragraphs' | 'words';
+
+const LOREM_WORDS = [
+	'lorem',
+	'ipsum',
+	'dolor',
+	'sit',
+	'amet',
+	'consectetur',
+	'adipiscing',
+	'elit',
+	'sed',
+	'do',
+	'eiusmod',
+	'tempor',
+	'incididunt',
+	'ut',
+	'labore',
+	'et',
+	'dolore',
+	'magna',
+	'aliqua',
+	'enim',
+	'ad',
+	'minim',
+	'veniam',
+	'quis',
+	'nostrud',
+	'exercitation',
+	'ullamco',
+	'laboris',
+	'nisi',
+	'aliquip',
+	'ex',
+	'ea',
+	'commodo',
+	'consequat',
+];
+
+function generateLoremIpsum(type: GeneratorType, count: number): string {
+	if (type === 'words') {
+		return Array.from({ length: count }, () => LOREM_WORDS[Math.floor(Math.random() * LOREM_WORDS.length)]).join(' ');
+	}
+
+	const wordsPerSentence = 12;
+	const sentencesPerParagraph = 5;
+
+	return Array.from({ length: count }, () => {
+		const sentences = Array.from({ length: sentencesPerParagraph }, () => {
+			const sentence = Array.from(
+				{ length: wordsPerSentence },
+				() => LOREM_WORDS[Math.floor(Math.random() * LOREM_WORDS.length)],
+			).join(' ');
+			return sentence.charAt(0).toUpperCase() + sentence.slice(1) + '.';
+		}).join(' ');
+		return sentences;
+	}).join('\n\n');
+}
 
 export default function LoremIpsumComponent() {
 	const [type, setType] = useState<GeneratorType>('paragraphs');
 	const [count, setCount] = useState<number>(1);
 	const [generatedText, setGeneratedText] = useState<string>('');
 
-	function generateLoremIpsum(type: GeneratorType, count: number): string {
-		const words = [
-			'lorem',
-			'ipsum',
-			'dolor',
-			'sit',
-			'amet',
-			'consectetur',
-			'adipiscing',
-			'elit',
-			'sed',
-			'do',
-			'eiusmod',
-			'tempor',
-			'incididunt',
-			'ut',
-			'labore',
-			'et',
-			'dolore',
-			'magna',
-			'aliqua',
-			'enim',
-			'ad',
-			'minim',
-			'veniam',
-			'quis',
-			'nostrud',
-			'exercitation',
-			'ullamco',
-			'laboris',
-			'nisi',
-			'ut',
-			'aliquip',
-			'ex',
-			'ea',
-			'commodo',
-			'consequat',
-		];
-
-		if (type === 'words') {
-			return Array.from({ length: count }, () => words[Math.floor(Math.random() * words.length)]).join(' ');
-		} else {
-			const wordsPerSentence = 12;
-			const sentencesPerParagraph = 5;
-
-			return Array.from({ length: count }, () => {
-				const sentences = Array.from({ length: sentencesPerParagraph }, () => {
-					const sentence = Array.from({ length: wordsPerSentence }, () => words[Math.floor(Math.random() * words.length)]).join(' ');
-					return sentence.charAt(0).toUpperCase() + sentence.slice(1) + '.';
-				}).join(' ');
-				return sentences;
-			}).join('\n\n');
-		}
-	}
+	const { copy } = useClipboard();
+	const { downloadText } = useDownload();
 
 	function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -71,23 +78,15 @@ export default function LoremIpsumComponent() {
 		setGeneratedText(text);
 	}
 
-	async function handleCopy() {
+	function handleCopy() {
 		if (generatedText) {
-			await navigator.clipboard.writeText(generatedText);
+			copy(generatedText);
 		}
 	}
 
 	function handleDownload() {
 		if (generatedText) {
-			const blob = new Blob([generatedText], { type: 'text/plain' });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = 'lorem-ipsum.txt';
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
+			downloadText(generatedText, 'lorem-ipsum.txt');
 		}
 	}
 

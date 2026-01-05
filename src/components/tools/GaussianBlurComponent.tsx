@@ -2,12 +2,10 @@
 
 import { IconDownload } from '@tabler/icons-react';
 import Image from 'next/image';
-import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-interface ImageDimensions {
-	width: number;
-	height: number;
-}
+import { useDownload, useImageUpload } from '@/hooks';
+import { ImageDimensions } from '@/lib/types';
 
 function gaussianBlur(imgData: ImageData, r: number, sigma: number): ImageData {
 	const width: number = imgData.width;
@@ -71,57 +69,27 @@ function gaussianBlur(imgData: ImageData, r: number, sigma: number): ImageData {
 export default function GaussianBlurComponent(): JSX.Element {
 	const [r, setR] = useState<number>(2);
 	const [sigma, setSigma] = useState<number>(5);
-	const [originalImage, setOriginalImage] = useState<string | null>(null);
 	const [blurredImage, setBlurredImage] = useState<string | null>(null);
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 	const [comparePosition, setComparePosition] = useState<number>(50);
-	const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
-	const [isDragging, setIsDragging] = useState<boolean>(false);
+
+	const {
+		image: originalImage,
+		dimensions: imageDimensions,
+		isDragging,
+		fileInputRef,
+		handleFileChange,
+		handleDragOver,
+		handleDragLeave,
+		handleDrop,
+		openFilePicker,
+	} = useImageUpload();
+
+	const { downloadDataUrl } = useDownload();
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const compareContainerRef = useRef<HTMLDivElement>(null);
 	const sliderRef = useRef<HTMLDivElement>(null);
-	const fileInputRef = useRef<HTMLInputElement>(null);
-
-	function processFile(file: File): void {
-		const reader: FileReader = new FileReader();
-		reader.onload = (e: ProgressEvent<FileReader>): void => {
-			if (typeof e.target?.result === 'string') {
-				setOriginalImage(e.target.result);
-				const img = new window.Image();
-				img.onload = () => {
-					setImageDimensions({ width: img.width, height: img.height });
-				};
-				img.src = e.target.result;
-			}
-		};
-		reader.readAsDataURL(file);
-	}
-
-	function handleImageUpload(e: ChangeEvent<HTMLInputElement>): void {
-		const file: File | undefined = e.target.files?.[0];
-		if (file) {
-			processFile(file);
-		}
-	}
-
-	function handleDragOver(e: React.DragEvent<HTMLDivElement>): void {
-		e.preventDefault();
-		setIsDragging(true);
-	}
-
-	function handleDragLeave(): void {
-		setIsDragging(false);
-	}
-
-	function handleDrop(e: React.DragEvent<HTMLDivElement>): void {
-		e.preventDefault();
-		setIsDragging(false);
-		const file = e.dataTransfer.files[0];
-		if (file && file.type.startsWith('image/')) {
-			processFile(file);
-		}
-	}
 
 	const applyBlur = useCallback((): void => {
 		if (!originalImage) return;
@@ -157,7 +125,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 		if (originalImage) applyBlur();
 	}, [originalImage, applyBlur]);
 
-	function handleSliderChange(e: ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<number>>) {
+	function handleSliderChange(e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<number>>) {
 		setter(parseFloat(e.target.value));
 	}
 
@@ -165,7 +133,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 		applyBlur();
 	}
 
-	const handleSliderDrag = useCallback(
+	const handleCompareSliderDrag = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
 			e.preventDefault();
 			const container = compareContainerRef.current;
@@ -193,10 +161,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 
 	function handleDownload() {
 		if (blurredImage) {
-			const link = document.createElement('a');
-			link.href = blurredImage;
-			link.download = 'blurred_image.png';
-			link.click();
+			downloadDataUrl(blurredImage, 'blurred_image.png');
 		}
 	}
 
@@ -208,8 +173,8 @@ export default function GaussianBlurComponent(): JSX.Element {
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}>
-					<input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" ref={fileInputRef} />
-					<button onClick={() => fileInputRef.current?.click()} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4">
+					<input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
+					<button onClick={openFilePicker} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4">
 						Select Image
 					</button>
 					<p className="mt-2 text-sm text-zinc-600">or drag and drop an image here</p>
@@ -316,7 +281,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 									backgroundColor: 'white',
 									cursor: 'ew-resize',
 								}}
-								onMouseDown={handleSliderDrag}
+								onMouseDown={handleCompareSliderDrag}
 							/>
 						</div>
 					</div>

@@ -3,6 +3,9 @@
 import { IconChevronDown, IconChevronUp, IconCopy, IconDownload, IconPalette, IconX } from '@tabler/icons-react';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { useClipboard, useImageUpload } from '@/hooks';
+import { colorDistance, formatHsl, formatRgb, hexToRgb, rgbToHex, rgbToHsl } from '@/lib/color';
+
 interface Color {
 	rgb: string;
 	hex: string;
@@ -15,98 +18,24 @@ interface ColorWithPalette extends Color {
 }
 
 export default function ColorPickerComponent() {
-	const [image, setImage] = useState<string | null>(null);
 	const [selectedColors, setSelectedColors] = useState<ColorWithPalette[]>([]);
-	const [isDragging, setIsDragging] = useState<boolean>(false);
 	const [magnifierPosition, setMagnifierPosition] = useState<{ x: number; y: number } | null>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const fileInputRef = useRef<HTMLInputElement>(null);
 	const imageRef = useRef<HTMLImageElement>(null);
-	const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
-	function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
-		e.preventDefault();
-		setIsDragging(true);
-	}
+	const {
+		image,
+		dimensions: imageDimensions,
+		isDragging,
+		fileInputRef,
+		handleFileChange,
+		handleDragOver,
+		handleDragLeave,
+		handleDrop,
+		openFilePicker,
+	} = useImageUpload();
 
-	function handleDragLeave() {
-		setIsDragging(false);
-	}
-
-	function handleDrop(e: React.DragEvent<HTMLDivElement>) {
-		e.preventDefault();
-		setIsDragging(false);
-		const file = e.dataTransfer.files[0];
-		if (file && file.type.startsWith('image/')) {
-			processFile(file);
-		}
-	}
-
-	function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-		const file = e.target.files?.[0];
-		if (file) {
-			processFile(file);
-		}
-	}
-
-	function processFile(file: File) {
-		const reader = new FileReader();
-		reader.onload = (e) => {
-			setImage(e.target?.result as string);
-		};
-		reader.readAsDataURL(file);
-	}
-
-	function rgbToHex(r: number, g: number, b: number): string {
-		return (
-			'#' +
-			[r, g, b]
-				.map((x) => {
-					const hex = x.toString(16);
-					return hex.length === 1 ? '0' + hex : hex;
-				})
-				.join('')
-		);
-	}
-
-	function hexToRgb(hex: string): [number, number, number] {
-		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [0, 0, 0];
-	}
-
-	function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
-		r /= 255;
-		g /= 255;
-		b /= 255;
-		const max = Math.max(r, g, b),
-			min = Math.min(r, g, b);
-		let h = 0,
-			s,
-			l = (max + min) / 2;
-
-		if (max !== min) {
-			const d = max - min;
-			s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-			switch (max) {
-				case r:
-					h = (g - b) / d + (g < b ? 6 : 0);
-					break;
-				case g:
-					h = (b - r) / d + 2;
-					break;
-				case b:
-					h = (r - g) / d + 4;
-					break;
-			}
-			h /= 6;
-		}
-
-		return [h * 360, s! * 100, l * 100];
-	}
-
-	function colorDistance(color1: [number, number, number], color2: [number, number, number]): number {
-		return Math.sqrt(Math.pow(color1[0] - color2[0], 2) + Math.pow(color1[1] - color2[1], 2) + Math.pow(color1[2] - color2[2], 2));
-	}
+	const { copy } = useClipboard();
 
 	function getPalette(imageData: ImageData, colorCount: number = 5, quality: number = 10): [number, number, number][] {
 		const pixels: [number, number, number][] = [];
@@ -165,13 +94,12 @@ export default function ColorPickerComponent() {
 
 		const imageData = ctx.getImageData(x, y, 1, 1);
 		const [r, g, b] = Array.from(imageData.data.slice(0, 3));
+		const [h, s, l] = rgbToHsl(r, g, b);
 
 		const color: ColorWithPalette = {
-			rgb: `rgb(${r}, ${g}, ${b})`,
+			rgb: formatRgb(r, g, b),
 			hex: rgbToHex(r, g, b),
-			hsl: `hsl(${rgbToHsl(r, g, b)
-				.map((v, i) => (i === 0 ? Math.round(v) : Math.round(v) + '%'))
-				.join(', ')})`,
+			hsl: formatHsl(h, s, l),
 			palette: [],
 			showPalette: false,
 		};
@@ -180,7 +108,7 @@ export default function ColorPickerComponent() {
 	}
 
 	function copyToClipboard(text: string) {
-		navigator.clipboard.writeText(text);
+		copy(text);
 	}
 
 	async function generatePalette(index: number) {
@@ -225,12 +153,11 @@ export default function ColorPickerComponent() {
 			const ctx = canvas.getContext('2d');
 			if (!ctx) return;
 
-			const img = new Image();
+			const img = new window.Image();
 			img.onload = () => {
 				canvas.width = img.width;
 				canvas.height = img.height;
 				ctx.drawImage(img, 0, 0);
-				setImageDimensions({ width: img.width, height: img.height });
 			};
 			img.src = image;
 		}
@@ -293,7 +220,7 @@ export default function ColorPickerComponent() {
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}>
 					<input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
-					<button onClick={() => fileInputRef.current?.click()} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4">
+					<button onClick={openFilePicker} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4">
 						Select Image
 					</button>
 					<p className="mt-2 text-sm text-zinc-600">or drag and drop an image here</p>
@@ -418,6 +345,7 @@ export default function ColorPickerComponent() {
 								/>
 							</div>
 						)}
+						{/* eslint-disable-next-line @next/next/no-img-element -- Hidden img used for canvas CORS operations */}
 						<img ref={imageRef} src={image} alt="Uploaded" className="hidden" crossOrigin="anonymous" />
 					</div>
 				</div>
