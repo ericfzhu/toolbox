@@ -93,6 +93,20 @@ export const TOOLS: Tool[] = [
 		description: 'Format, minify, and view JSON in a tree',
 		component: tools.JsonToolComponent,
 	},
+	{
+		name: 'QR Code',
+		href: '/qrcode',
+		preview: 'previews/qrcode.webp',
+		description: 'Generate QR codes with custom colors',
+		component: tools.QrCodeComponent,
+	},
+	{
+		name: 'Markdown',
+		href: '/markdown',
+		preview: 'previews/markdown.webp',
+		description: 'Preview and export Markdown to HTML',
+		component: tools.MarkdownPreviewComponent,
+	},
 ];
 
 export function getToolByPath(path: string): Tool | undefined {
