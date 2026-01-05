@@ -79,6 +79,20 @@ export const TOOLS: Tool[] = [
 		description: 'Convert a folder into a single text file for prompting',
 		component: tools.FlatpackComponent,
 	},
+	{
+		name: 'Diff Checker',
+		href: '/diff',
+		preview: 'previews/diff.webp',
+		description: 'Compare two texts and highlight changes',
+		component: tools.DiffCheckerComponent,
+	},
+	{
+		name: 'JSON Tool',
+		href: '/json',
+		preview: 'previews/json.webp',
+		description: 'Format, minify, and view JSON in a tree',
+		component: tools.JsonToolComponent,
+	},
 ];
 
 export function getToolByPath(path: string): Tool | undefined {
