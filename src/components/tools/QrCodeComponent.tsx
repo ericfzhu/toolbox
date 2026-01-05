@@ -88,7 +88,7 @@ export default function QrCodeComponent() {
 	return (
 		<div className="flex gap-8 w-full max-w-4xl mx-auto">
 			{/* Controls */}
-			<div className="w-72 space-y-4">
+			<div className="w-72 flex-shrink-0 space-y-4">
 				<div className="space-y-2">
 					<label className="block text-sm font-medium text-zinc-700">Text or URL</label>
 					<textarea
@@ -126,38 +126,38 @@ export default function QrCodeComponent() {
 					<p className="text-xs text-zinc-500">Higher correction allows more damage but creates denser codes</p>
 				</div>
 
-				<div className="flex gap-4">
-					<div className="flex-1 space-y-2">
+				<div className="space-y-3">
+					<div className="space-y-2">
 						<label className="block text-sm font-medium text-zinc-700">Foreground</label>
 						<div className="flex gap-2">
 							<input
 								type="color"
 								value={foregroundColor}
 								onChange={(e) => setForegroundColor(e.target.value)}
-								className="w-10 h-10 border border-zinc-300 rounded-sm cursor-pointer"
+								className="w-10 h-10 border border-zinc-300 rounded-sm cursor-pointer flex-shrink-0"
 							/>
 							<input
 								type="text"
 								value={foregroundColor}
 								onChange={(e) => setForegroundColor(e.target.value)}
-								className="flex-1 p-2 border border-zinc-300 rounded-sm text-sm font-mono"
+								className="flex-1 min-w-0 p-2 border border-zinc-300 rounded-sm text-sm font-mono"
 							/>
 						</div>
 					</div>
-					<div className="flex-1 space-y-2">
+					<div className="space-y-2">
 						<label className="block text-sm font-medium text-zinc-700">Background</label>
 						<div className="flex gap-2">
 							<input
 								type="color"
 								value={backgroundColor}
 								onChange={(e) => setBackgroundColor(e.target.value)}
-								className="w-10 h-10 border border-zinc-300 rounded-sm cursor-pointer"
+								className="w-10 h-10 border border-zinc-300 rounded-sm cursor-pointer flex-shrink-0"
 							/>
 							<input
 								type="text"
 								value={backgroundColor}
 								onChange={(e) => setBackgroundColor(e.target.value)}
-								className="flex-1 p-2 border border-zinc-300 rounded-sm text-sm font-mono"
+								className="flex-1 min-w-0 p-2 border border-zinc-300 rounded-sm text-sm font-mono"
 							/>
 						</div>
 					</div>
@@ -182,7 +182,7 @@ export default function QrCodeComponent() {
 			</div>
 
 			{/* Preview */}
-			<div className="flex-1 flex items-center justify-center">
+			<div className="flex-1 min-w-0 flex items-center justify-center overflow-hidden">
 				{error ? (
 					<div className="text-red-600 text-sm">{error}</div>
 				) : qrDataUrl ? (
