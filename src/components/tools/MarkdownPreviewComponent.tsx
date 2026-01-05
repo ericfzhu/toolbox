@@ -171,7 +171,7 @@ ${htmlContent}
 			</div>
 
 			{/* Editor and Preview */}
-			<div className={`flex-1 flex gap-4 min-h-0 ${viewMode === 'split' ? '' : ''}`}>
+			<div className="flex gap-4">
 				{/* Editor */}
 				{(viewMode === 'split' || viewMode === 'html') && (
 					<div className={`flex flex-col gap-2 ${viewMode === 'split' ? 'flex-1' : 'flex-1'}`}>
@@ -181,7 +181,7 @@ ${htmlContent}
 							onChange={(e) => setMarkdown(e.target.value)}
 							placeholder="Write your markdown here..."
 							spellCheck={false}
-							className="flex-1 w-full p-4 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400 min-h-[60vh]"
+							className="w-full p-4 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400 h-[60vh]"
 						/>
 					</div>
 				)}
@@ -191,7 +191,7 @@ ${htmlContent}
 					<div className={`flex flex-col gap-2 ${viewMode === 'split' ? 'flex-1' : 'flex-1'}`}>
 						{viewMode === 'split' && <label className="text-sm font-medium text-zinc-700">Preview</label>}
 						<div
-							className="flex-1 w-full p-4 border border-zinc-300 rounded-sm overflow-auto bg-white min-h-[60vh] prose prose-zinc max-w-none
+							className="w-full p-4 border border-zinc-300 rounded-sm overflow-auto bg-white h-[60vh] prose prose-zinc max-w-none
 								prose-headings:mt-4 prose-headings:mb-2
 								prose-p:my-2
 								prose-pre:bg-zinc-100 prose-pre:text-zinc-800
@@ -214,7 +214,7 @@ ${htmlContent}
 						<textarea
 							value={htmlContent}
 							readOnly
-							className="flex-1 w-full p-4 border border-zinc-300 rounded-sm font-mono text-sm resize-none bg-zinc-50 min-h-[60vh]"
+							className="w-full p-4 border border-zinc-300 rounded-sm font-mono text-sm resize-none bg-zinc-50 h-[60vh]"
 						/>
 					</div>
 				)}

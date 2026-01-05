@@ -268,31 +268,33 @@ export default function JsonToolComponent() {
 				{/* Indent size */}
 				<div className="flex items-center gap-2">
 					<label className="text-sm text-zinc-600">Indent:</label>
-					<select
-						value={indentSize}
-						onChange={(e) => setIndentSize(Number(e.target.value))}
-						className="border border-zinc-300 rounded-sm px-2 py-1 text-sm">
-						<option value={2}>2 spaces</option>
-						<option value={4}>4 spaces</option>
-						<option value={1}>1 tab</option>
-					</select>
+					<div className="border border-zinc-300 rounded-sm pr-2">
+						<select
+							value={indentSize}
+							onChange={(e) => setIndentSize(Number(e.target.value))}
+							className="pl-4 pr-2 h-10 bg-transparent border-none outline-none cursor-pointer">
+							<option value={2}>2 spaces</option>
+							<option value={4}>4 spaces</option>
+							<option value={1}>1 tab</option>
+						</select>
+					</div>
 				</div>
 
 				{/* View mode */}
 				<div className="flex border border-zinc-300 rounded-sm overflow-hidden">
 					<button
 						onClick={() => setViewMode('formatted')}
-						className={`px-3 py-1 text-sm ${viewMode === 'formatted' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`px-4 py-2 ${viewMode === 'formatted' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
 						Formatted
 					</button>
 					<button
 						onClick={() => setViewMode('tree')}
-						className={`px-3 py-1 text-sm ${viewMode === 'tree' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`px-4 py-2 ${viewMode === 'tree' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
 						Tree
 					</button>
 					<button
 						onClick={() => setViewMode('minified')}
-						className={`px-3 py-1 text-sm ${viewMode === 'minified' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`px-4 py-2 ${viewMode === 'minified' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
 						Minified
 					</button>
 				</div>
