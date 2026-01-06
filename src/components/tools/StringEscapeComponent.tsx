@@ -3,6 +3,8 @@
 import { IconCopy, IconDownload } from '@tabler/icons-react';
 import React, { useState } from 'react';
 
+import { useClipboard, useDownload } from '@/hooks';
+
 function escapeString(str: string): string {
 	return str.replace(/[\\\n\r\t"'\b\f\v\0`\$\{\}<>&\x00-\x1F\u2028\u2029]|[\ud800-\udbff][\udc00-\udfff]/g, (match) => {
 		// Handle surrogate pairs (including emojis)
@@ -56,69 +58,68 @@ export default function StringEscapeComponent() {
 	const [input, setInput] = useState('');
 	const [escaped, setEscaped] = useState('');
 
+	const { copy } = useClipboard();
+	const { downloadText } = useDownload();
+
 	function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
 		const newInput = e.target.value;
 		setInput(newInput);
 		setEscaped(escapeString(newInput));
 	}
 
-	async function handleCopy() {
+	function handleCopy() {
 		if (escaped) {
-			await navigator.clipboard.writeText(escaped);
+			copy(escaped);
 		}
 	}
 
 	function handleDownload() {
 		if (escaped) {
-			const blob = new Blob([escaped], { type: 'text/plain' });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = 'escaped_string.txt';
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
+			downloadText(escaped, 'escaped_string.txt');
 		}
 	}
 
 	return (
-		<div className="p-6 space-y-4">
-			<div className="flex gap-4">
+		<div className="flex flex-col md:flex-row gap-4">
+			<div className="flex-1">
+				<label className="block text-sm font-medium text-zinc-700 mb-2">Input</label>
 				<textarea
-					className="flex-1 p-4 border border-zinc-300 rounded-sm overflow-auto h-[calc(100vh-30rem)] resize-none focus:outline-none focus:ring-2 focus:ring-zinc-500"
+					className="w-full p-3 sm:p-4 border border-zinc-300 rounded-sm h-[40vh] md:h-[60vh] resize-none focus:outline-none focus:ring-2 focus:ring-zinc-500"
 					placeholder="Type or paste your text here..."
 					value={input}
 					onChange={handleInputChange}
 				/>
+			</div>
 
-				<div className="flex-1 relative">
-					<textarea
-						className="w-full p-4 border border-zinc-300 rounded-sm overflow-auto h-[calc(100vh-30rem)] resize-none bg-zinc-50"
-						value={escaped}
-						readOnly
-					/>
-
-					<div className="absolute bottom-4 right-4 flex space-x-2">
+			<div className="flex-1">
+				<div className="flex items-center justify-between mb-2">
+					<label className="block text-sm font-medium text-zinc-700">Escaped Output</label>
+					<div className="flex gap-2">
 						<button
 							onClick={handleCopy}
 							className={`p-2 border rounded-sm flex items-center justify-center ${
 								escaped ? 'bg-zinc-500 hover:bg-zinc-700 text-white' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
 							}`}
-							disabled={!escaped}>
+							disabled={!escaped}
+							aria-label="Copy to clipboard">
 							<IconCopy size={16} />
 						</button>
-
 						<button
 							onClick={handleDownload}
 							className={`p-2 border rounded-sm flex items-center justify-center ${
 								escaped ? 'bg-zinc-500 hover:bg-zinc-700 text-white' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
 							}`}
-							disabled={!escaped}>
+							disabled={!escaped}
+							aria-label="Download as file">
 							<IconDownload size={16} />
 						</button>
 					</div>
 				</div>
+				<textarea
+					className="w-full p-3 sm:p-4 border border-zinc-300 rounded-sm h-[40vh] md:h-[60vh] resize-none bg-zinc-50"
+					value={escaped}
+					readOnly
+				/>
 			</div>
 		</div>
 	);

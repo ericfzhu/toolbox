@@ -91,20 +91,18 @@ export default function LoremIpsumComponent() {
 	}
 
 	return (
-		<div className="flex gap-4 p-6">
-			<div className="w-64 space-y-4">
-				<h1 className="text-xl font-bold text-gray-900">Lorem Ipsum Generator</h1>
-
+		<div className="flex flex-col md:flex-row gap-4">
+			<div className="w-full md:w-64 space-y-4 order-2 md:order-1">
 				<form onSubmit={handleSubmit} className="space-y-4">
 					<div className="space-y-2">
-						{/* <label className="block text-sm font-medium text-gray-700">Type</label> */}
+						<label className="block text-sm font-medium text-zinc-700">Type</label>
 						<div className="grid grid-cols-2 gap-2">
 							{(['paragraphs', 'words'] as const).map((typeOption) => (
 								<button
 									key={typeOption}
 									type="button"
 									onClick={() => setType(typeOption)}
-									className={`p-2 border rounded-sm ${
+									className={`p-2 border rounded-sm text-sm sm:text-base ${
 										type === typeOption ? 'bg-zinc-200 border-zinc-400 hover:bg-zinc-300' : 'border-zinc-300 hover:bg-zinc-100'
 									}`}>
 									{typeOption.charAt(0).toUpperCase() + typeOption.slice(1)}
@@ -114,9 +112,9 @@ export default function LoremIpsumComponent() {
 					</div>
 
 					<div className="space-y-2">
-						{/* <label htmlFor="count" className="block text-sm font-medium text-gray-700">
+						<label htmlFor="count" className="block text-sm font-medium text-zinc-700">
 							Count
-						</label> */}
+						</label>
 						<input
 							type="number"
 							id="count"
@@ -138,7 +136,8 @@ export default function LoremIpsumComponent() {
 						className={`flex-1 border rounded-sm p-2 flex items-center justify-center gap-2 ${
 							generatedText ? 'bg-zinc-500 hover:bg-zinc-700 text-white' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
 						}`}
-						disabled={!generatedText}>
+						disabled={!generatedText}
+						aria-label="Copy to clipboard">
 						<IconCopy size={16} />
 					</button>
 
@@ -147,17 +146,18 @@ export default function LoremIpsumComponent() {
 						className={`flex-1 border rounded-sm p-2 flex items-center justify-center gap-2 ${
 							generatedText ? 'bg-zinc-500 hover:bg-zinc-700 text-white' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
 						}`}
-						disabled={!generatedText}>
+						disabled={!generatedText}
+						aria-label="Download as file">
 						<IconDownload size={16} />
 					</button>
 				</div>
 			</div>
 
-			<div className="flex-1 border border-zinc-300 rounded-sm overflow-auto h-[calc(100vh-30rem)]">
+			<div className="flex-1 border border-zinc-300 rounded-sm overflow-auto h-[40vh] md:h-[60vh] order-1 md:order-2">
 				{!generatedText ? (
-					<div className="h-full flex items-center justify-center text-zinc-500">Generate text to see the result</div>
+					<div className="h-full flex items-center justify-center text-zinc-500 text-sm sm:text-base">Generate text to see the result</div>
 				) : (
-					<div className="p-4 whitespace-pre-wrap">{generatedText}</div>
+					<div className="p-3 sm:p-4 whitespace-pre-wrap text-sm sm:text-base">{generatedText}</div>
 				)}
 			</div>
 		</div>

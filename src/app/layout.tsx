@@ -1,11 +1,26 @@
 import { GeistMono } from 'geist/font/mono';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+
+import { ToastProvider } from '@/components/Toast';
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 
 import './globals.css';
 
 export const metadata: Metadata = {
 	title: 'Toolbox',
-	description: 'A collection of useful programs',
+	description: 'A collection of useful tools',
+	manifest: '/manifest.json',
+	appleWebApp: {
+		capable: true,
+		statusBarStyle: 'default',
+		title: 'Toolbox',
+	},
+};
+
+export const viewport: Viewport = {
+	width: 'device-width',
+	initialScale: 1,
+	themeColor: '#18181b',
 };
 
 export default function RootLayout({
@@ -16,10 +31,13 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<head>
-				<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 				<link rel="icon" href="/icon.jpg" />
+				<link rel="apple-touch-icon" href="/icon.jpg" />
 			</head>
-			<body className={GeistMono.className}>{children}</body>
+			<body className={GeistMono.className}>
+				<ToastProvider>{children}</ToastProvider>
+				<ServiceWorkerRegistration />
+			</body>
 		</html>
 	);
 }
