@@ -107,6 +107,13 @@ export const TOOLS: Tool[] = [
 		description: 'Preview and export Markdown to HTML',
 		component: tools.MarkdownPreviewComponent,
 	},
+	{
+		name: 'Barcode',
+		href: '/barcode',
+		preview: 'previews/barcode.webp',
+		description: 'Generate barcodes in multiple formats',
+		component: tools.BarcodeGeneratorComponent,
+	},
 ];
 
 export function getToolByPath(path: string): Tool | undefined {
