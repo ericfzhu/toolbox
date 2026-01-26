@@ -114,6 +114,13 @@ export const TOOLS: Tool[] = [
 		description: 'Generate barcodes in multiple formats',
 		component: tools.BarcodeGeneratorComponent,
 	},
+	{
+		name: 'Epoch Converter',
+		href: '/epoch',
+		preview: 'previews/epoch.webp',
+		description: 'Convert between Unix timestamps and dates',
+		component: tools.EpochConverterComponent,
+	},
 ];
 
 export function getToolByPath(path: string): Tool | undefined {

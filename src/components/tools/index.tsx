@@ -3,6 +3,7 @@ import BarcodeGeneratorComponent from './BarcodeGeneratorComponent';
 import ColorPickerComponent from './ColorPickerComponent';
 import DiffCheckerComponent from './DiffCheckerComponent';
 import DotPatternComponent from './DotPatternComponent';
+import EpochConverterComponent from './EpochConverterComponent';
 import FlatpackComponent from './FlatpackComponent';
 import GaussianBlurComponent from './GaussianBlurComponent';
 import ImageConverterComponent from './ImageConverterComponent';
@@ -20,6 +21,7 @@ export {
 	ColorPickerComponent,
 	DiffCheckerComponent,
 	DotPatternComponent,
+	EpochConverterComponent,
 	FlatpackComponent,
 	GaussianBlurComponent,
 	ImageConverterComponent,
