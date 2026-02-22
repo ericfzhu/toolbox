@@ -1,5 +1,6 @@
 import AsciiArtComponent from './AsciiArtComponent';
 import BarcodeGeneratorComponent from './BarcodeGeneratorComponent';
+import BackgroundRemoverComponent from './BackgroundRemoverComponent';
 import ColorPickerComponent from './ColorPickerComponent';
 import DiffCheckerComponent from './DiffCheckerComponent';
 import DotPatternComponent from './DotPatternComponent';
@@ -18,6 +19,7 @@ import WordCounterComponent from './WordCounterComponent';
 export {
 	AsciiArtComponent,
 	BarcodeGeneratorComponent,
+	BackgroundRemoverComponent,
 	ColorPickerComponent,
 	DiffCheckerComponent,
 	DotPatternComponent,

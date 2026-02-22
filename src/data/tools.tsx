@@ -59,6 +59,13 @@ export const TOOLS: Tool[] = [
 		component: tools.ImageConverterComponent,
 	},
 	{
+		name: 'Background Remover',
+		href: '/background-remover',
+		preview: 'previews/background.webp',
+		description: 'Remove solid-color backgrounds from images',
+		component: tools.BackgroundRemoverComponent,
+	},
+	{
 		name: 'String Sanitizer',
 		href: '/sanitizer',
 		preview: 'previews/sanitizer.webp',
