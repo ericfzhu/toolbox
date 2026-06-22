@@ -228,27 +228,39 @@ export default function ColorPickerComponent() {
 	}
 
 	return (
-		<div className="flex flex-col md:flex-row gap-4">
-			<div className="w-full md:w-64 space-y-4 order-2 md:order-1">
+		<div className="flex flex-col gap-6 md:flex-row md:gap-8">
+			<div className="order-2 w-full max-w-sm space-y-4 md:order-1 md:w-80">
 				<div
-					className={`border-2 border-dashed p-4 text-center ${isDragging ? 'border-zinc-500 bg-zinc-100' : 'border-zinc-300'}`}
+					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
+						isDragging ? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]' : 'bg-white'
+					}`}
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}>
-					<input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
-					<button onClick={openFilePicker} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4 text-sm sm:text-base">
-						Select Image
-					</button>
-					<p className="mt-2 text-xs sm:text-sm text-zinc-600">or drag and drop an image here</p>
+					<div
+						className={`rounded-[20px] border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
+							isDragging ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
+						}`}>
+						<input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
+						<button
+							onClick={openFilePicker}
+							className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+							Select Image
+						</button>
+						<p className="mt-3 text-sm text-zinc-500">or drag and drop an image here</p>
+					</div>
 				</div>
 
 				{selectedColors.map((color, index) => (
-					<div key={index} className="p-4 bg-white rounded-sm border border-zinc-200">
-						<div className="flex justify-between items-center mb-2 relative">
-							<div className="w-full h-12 rounded-sm" style={{ backgroundColor: color.rgb }}></div>
+					<div
+						key={index}
+						className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="rounded-[20px] bg-zinc-50 p-4">
+						<div className="relative mb-3 flex items-center justify-between">
+							<div className="h-14 w-full rounded-2xl shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]" style={{ backgroundColor: color.rgb }}></div>
 							<button
 								onClick={() => setSelectedColors((colors) => colors.filter((_, i) => i !== index))}
-								className="absolute right-1 top-1 p-1 bg-zinc-500 text-white rounded-sm hover:bg-zinc-600 transition-colors"
+								className="absolute right-2 top-2 inline-flex min-h-10 min-w-10 items-center justify-center rounded-full bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]"
 								aria-label="Remove color">
 								<IconX size={14} />
 							</button>
@@ -257,18 +269,18 @@ export default function ColorPickerComponent() {
 							{['rgb', 'hex', 'hsl'].map((format) => (
 								<button
 									key={format}
-									className="flex items-center w-full text-left p-1 hover:bg-zinc-50 rounded-sm"
+									className="flex min-h-11 w-full items-center rounded-2xl bg-white px-2 py-2 text-left shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.98]"
 									onClick={() => copyToClipboard(color[format as keyof Color])}>
-									<span className="w-8 uppercase text-zinc-500">{format}</span>
-									<span className="flex-grow font-mono">{color[format as keyof Color]}</span>
+									<span className="w-10 uppercase text-zinc-500">{format}</span>
+									<span className="flex-grow font-mono text-zinc-700">{color[format as keyof Color]}</span>
 									<IconCopy size={14} className="text-zinc-400" />
 								</button>
 							))}
 						</div>
-						<div className="mt-2">
+						<div className="mt-3">
 							<button
 								onClick={() => (color.palette.length ? togglePalette(index) : generatePalette(index))}
-								className="w-full bg-zinc-200 hover:bg-zinc-300 py-2 px-3 rounded-sm flex items-center justify-center text-sm">
+								className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
 								<IconPalette size={16} className="mr-2" />
 								{color.palette.length ? (color.showPalette ? 'Hide' : 'Show') : 'Generate'} Palette
 								{color.palette.length > 0 &&
@@ -280,12 +292,12 @@ export default function ColorPickerComponent() {
 							</button>
 						</div>
 						{color.showPalette && (
-							<div className="mt-2 space-y-2">
-								<div className="flex space-x-1">
+							<div className="mt-3 space-y-3">
+								<div className="flex space-x-2">
 									{color.palette.map((paletteColor, i) => (
 										<button
 											key={i}
-											className="w-8 h-8 rounded-sm cursor-pointer transition-transform hover:scale-110"
+											className="h-10 w-10 rounded-2xl cursor-pointer shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,box-shadow] duration-200 ease-out hover:scale-110 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
 											style={{ backgroundColor: paletteColor }}
 											title={`Click to copy: ${paletteColor}`}
 											onClick={() => copyToClipboard(paletteColor)}
@@ -294,31 +306,34 @@ export default function ColorPickerComponent() {
 								</div>
 								<button
 									onClick={() => downloadImageWithPalette(color.palette)}
-									className="w-full bg-zinc-500 hover:bg-zinc-700 text-white py-2 px-3 rounded-sm flex items-center justify-center text-sm gap-2">
+									className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
 									<IconDownload size={16} />
 									<span>Download with Palette</span>
 								</button>
 							</div>
 						)}
 					</div>
+					</div>
 				))}
 			</div>
 
 			{!image ? (
 				<div className="flex-1 flex items-center justify-center order-1 md:order-2">
-					<div className="border-2 border-dashed border-zinc-300 rounded-sm w-full md:w-[50vw] h-[40vh] md:h-[50vh] flex items-center justify-center text-zinc-500 text-sm sm:text-base">
-						Upload an image to get started
+					<div className="flex h-[40vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)] md:h-[50vh]">
+						<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500 text-sm sm:text-base">
+							Upload an image to get started
+						</div>
 					</div>
 				</div>
 			) : (
 				<div className="flex-1 flex flex-col items-center order-1 md:order-2">
-					<div className="relative w-full" style={{ maxWidth: '70vw', maxHeight: '50vh' }}>
+					<div className="relative w-full rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]" style={{ maxHeight: '50vh' }}>
 						<canvas
 							ref={canvasRef}
 							onClick={handleImageClick}
 							onMouseMove={handleMouseMove}
 							onMouseLeave={handleMouseLeave}
-							className="cursor-none max-w-full max-h-full"
+							className="cursor-none max-h-full max-w-full rounded-[24px] bg-white outline outline-1 -outline-offset-1 outline-black/10"
 							style={{ height: 'auto' }}
 						/>
 						{magnifierPosition && (

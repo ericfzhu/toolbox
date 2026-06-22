@@ -181,73 +181,96 @@ export default function GaussianBlurComponent(): JSX.Element {
 	}
 
 	return (
-		<div className="flex gap-4">
-			<div className="w-64 space-y-4">
+		<div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+			<div className="w-full max-w-sm space-y-4 lg:sticky lg:top-8 lg:w-80 lg:self-start">
 				<div
-					className={`border-2 border-dashed p-4 text-center ${isDragging ? 'border-zinc-500 bg-zinc-100' : 'border-zinc-300'}`}
+					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
+						isDragging ? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]' : 'bg-white'
+					}`}
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}>
-					<input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
-					<button onClick={openFilePicker} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4">
-						Select Image
-					</button>
-					<p className="mt-2 text-sm text-zinc-600">or drag and drop an image here</p>
+					<div
+						className={`rounded-[20px] border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
+							isDragging ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
+						}`}>
+						<input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
+						<button
+							onClick={openFilePicker}
+							className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+							Select Image
+						</button>
+						<p className="mt-3 text-sm text-zinc-500">or drag and drop an image here</p>
+					</div>
 				</div>
 
-				<div className="space-y-2">
-					<label htmlFor="r" className="block">
-						Radius: {r.toFixed(1)}px
-					</label>
-					<input
-						type="range"
-						id="r"
-						value={r}
-						onChange={(e) => handleSliderChange(e, setR)}
-						onMouseUp={handleSliderRelease}
-						onTouchEnd={handleSliderRelease}
-						min="0.5"
-						max="10"
-						step="0.1"
-						className="w-full accent-zinc-500"
-					/>
-				</div>
+				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="space-y-5 rounded-[20px] bg-zinc-50 px-4 py-4">
+						<div className="space-y-2">
+							<div className="flex items-center justify-between gap-4">
+								<label htmlFor="r" className="block text-sm font-medium text-zinc-900">
+									Radius
+								</label>
+								<span className="tabular-nums text-sm text-zinc-500">{r.toFixed(1)}px</span>
+							</div>
+							<input
+								type="range"
+								id="r"
+								value={r}
+								onChange={(e) => handleSliderChange(e, setR)}
+								onMouseUp={handleSliderRelease}
+								onTouchEnd={handleSliderRelease}
+								min="0.5"
+								max="10"
+								step="0.1"
+								className="w-full accent-zinc-900"
+							/>
+						</div>
 
-				<div className="space-y-2">
-					<label htmlFor="sigma" className="block">
-						Sigma: {sigma.toFixed(1)}
-					</label>
-					<input
-						type="range"
-						id="sigma"
-						value={sigma}
-						onChange={(e) => handleSliderChange(e, setSigma)}
-						onMouseUp={handleSliderRelease}
-						onTouchEnd={handleSliderRelease}
-						min="0.1"
-						max="10"
-						step="0.1"
-						className="w-full accent-zinc-500"
-					/>
+						<div className="space-y-2">
+							<div className="flex items-center justify-between gap-4">
+								<label htmlFor="sigma" className="block text-sm font-medium text-zinc-900">
+									Sigma
+								</label>
+								<span className="tabular-nums text-sm text-zinc-500">{sigma.toFixed(1)}</span>
+							</div>
+							<input
+								type="range"
+								id="sigma"
+								value={sigma}
+								onChange={(e) => handleSliderChange(e, setSigma)}
+								onMouseUp={handleSliderRelease}
+								onTouchEnd={handleSliderRelease}
+								min="0.1"
+								max="10"
+								step="0.1"
+								className="w-full accent-zinc-900"
+							/>
+						</div>
+					</div>
 				</div>
 
 				{blurredImage && (
-					<div className="space-y-4 border-t pt-4">
+					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="rounded-[20px] bg-zinc-50 p-4">
 						<button
 							onClick={handleDownload}
-							className="w-full bg-zinc-500 hover:bg-zinc-700 text-white font-bold p-2 rounded-sm flex items-center justify-center gap-2"
+							className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
 							aria-label="Download blurred image">
 							<IconDownload size={20} />
 							<span>Download</span>
 						</button>
+					</div>
 					</div>
 				)}
 			</div>
 
 			{!originalImage ? (
 				<div className="flex-1 flex items-center justify-center">
-					<div className="border-2 border-dashed border-zinc-300 rounded-sm w-[50vw] h-[50vh] flex items-center justify-center text-zinc-500">
-						Upload an image to get started
+					<div className="flex h-[60vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+						<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500">
+							Upload an image to get started
+						</div>
 					</div>
 				</div>
 			) : (
@@ -256,48 +279,63 @@ export default function GaussianBlurComponent(): JSX.Element {
 				imageDimensions && (
 					<div className="flex-1 flex flex-col items-center">
 						<div
-							className="relative"
+							className="relative overflow-hidden rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]"
 							ref={compareContainerRef}
 							style={{
-								width: imageDimensions.width >= imageDimensions.height ? '50vw' : 'auto',
-								height: imageDimensions.height > imageDimensions.width ? '50vw' : 'auto',
+								width: imageDimensions.width >= imageDimensions.height ? '100%' : 'auto',
+								height: imageDimensions.height > imageDimensions.width ? '100%' : 'auto',
 								maxWidth: '100%',
 								maxHeight: '70vh',
 								aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
 							}}>
+							<div className="pointer-events-none absolute left-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+								Original
+							</div>
+							<div className="pointer-events-none absolute right-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+								Blurred
+							</div>
 							<Image
 								src={originalImage}
 								alt="Original"
-								className="absolute top-0 left-0 select-none pointer-events-none object-contain"
+								className="absolute top-3 left-3 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
 								style={{
 									clipPath: `inset(0 ${100 - comparePosition}% 0 0)`,
 								}}
 								fill
-								sizes="50vw"
+								sizes="70vw"
 							/>
 							<Image
 								src={blurredImage}
 								alt="Blurred"
-								className="absolute top-0 left-0 select-none pointer-events-none object-contain"
+								className="absolute top-3 left-3 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
 								style={{
 									clipPath: `inset(0 0 0 ${comparePosition}%)`,
 								}}
 								fill
-								sizes="50vw"
+								sizes="70vw"
 							/>
 							<div
 								ref={sliderRef}
+								className="group absolute top-3 z-20"
 								style={{
-									position: 'absolute',
-									top: 0,
 									left: `${comparePosition}%`,
-									width: '4px',
-									height: '100%',
-									backgroundColor: 'white',
+									height: 'calc(100% - 24px)',
+									width: '40px',
+									transform: 'translateX(-20px)',
 									cursor: 'ew-resize',
 								}}
-								onMouseDown={handleCompareSliderDrag}
-							/>
+								onMouseDown={handleCompareSliderDrag}>
+								<div className="relative mx-auto h-full w-1 rounded-full bg-white/95 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_4px_10px_rgba(0,0,0,0.18)] transition-[background-color,box-shadow] duration-200 ease-out group-hover:bg-white" />
+								<div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_8px_20px_rgba(0,0,0,0.14)] transition-[transform,box-shadow] duration-200 ease-out group-hover:scale-105 group-active:scale-[0.96]">
+									<>
+										<span className="-mr-0.5">L</span>
+										<span className="-ml-0.5">R</span>
+									</>
+								</div>
+							</div>
+							<div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white tabular-nums backdrop-blur-sm">
+								{Math.round(comparePosition)}%
+							</div>
 						</div>
 					</div>
 				)
