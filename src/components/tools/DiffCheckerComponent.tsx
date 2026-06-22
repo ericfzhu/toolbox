@@ -1,15 +1,14 @@
 'use client';
 
-import { IconCopy } from '@tabler/icons-react';
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import hljs from 'highlight.js/lib/core';
-import javascript from 'highlight.js/lib/languages/javascript';
-import python from 'highlight.js/lib/languages/python';
-import markdown from 'highlight.js/lib/languages/markdown';
-import json from 'highlight.js/lib/languages/json';
-import java from 'highlight.js/lib/languages/java';
-
 import { useClipboard } from '@/hooks';
+import { IconCopy } from '@tabler/icons-react';
+import hljs from 'highlight.js/lib/core';
+import java from 'highlight.js/lib/languages/java';
+import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import markdown from 'highlight.js/lib/languages/markdown';
+import python from 'highlight.js/lib/languages/python';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Register languages
 hljs.registerLanguage('javascript', javascript);
@@ -57,12 +56,7 @@ function highlightCode(code: string, language: string): string {
 }
 
 function escapeHtml(text: string): string {
-	return text
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#039;');
+	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 // Minimal syntax highlighting styles (GitHub-inspired)
@@ -131,68 +125,150 @@ interface DiffLine {
 	newLineNum?: number;
 }
 
-function computeDiff(oldText: string, newText: string): DiffLine[] {
-	const oldLines = oldText.split('\n');
-	const newLines = newText.split('\n');
+const MAX_EXACT_EDIT_DISTANCE = 2000;
 
-	// Simple LCS-based diff algorithm
-	const m = oldLines.length;
-	const n = newLines.length;
+function buildPrefixSuffixDiff(oldLines: string[], newLines: string[]): DiffLine[] {
+	const result: DiffLine[] = [];
+	let prefixLength = 0;
 
-	// Build LCS table
-	const dp: number[][] = Array(m + 1)
-		.fill(null)
-		.map(() => Array(n + 1).fill(0));
+	while (prefixLength < oldLines.length && prefixLength < newLines.length && oldLines[prefixLength] === newLines[prefixLength]) {
+		result.push({
+			type: 'unchanged',
+			content: oldLines[prefixLength],
+			oldLineNum: prefixLength + 1,
+			newLineNum: prefixLength + 1,
+		});
+		prefixLength++;
+	}
 
-	for (let i = 1; i <= m; i++) {
-		for (let j = 1; j <= n; j++) {
-			if (oldLines[i - 1] === newLines[j - 1]) {
-				dp[i][j] = dp[i - 1][j - 1] + 1;
+	let suffixLength = 0;
+	while (
+		suffixLength < oldLines.length - prefixLength &&
+		suffixLength < newLines.length - prefixLength &&
+		oldLines[oldLines.length - 1 - suffixLength] === newLines[newLines.length - 1 - suffixLength]
+	) {
+		suffixLength++;
+	}
+
+	const oldMiddleEnd = oldLines.length - suffixLength;
+	const newMiddleEnd = newLines.length - suffixLength;
+
+	for (let i = prefixLength; i < oldMiddleEnd; i++) {
+		result.push({
+			type: 'removed',
+			content: oldLines[i],
+			oldLineNum: i + 1,
+		});
+	}
+
+	for (let i = prefixLength; i < newMiddleEnd; i++) {
+		result.push({
+			type: 'added',
+			content: newLines[i],
+			newLineNum: i + 1,
+		});
+	}
+
+	for (let i = 0; i < suffixLength; i++) {
+		const oldIndex = oldMiddleEnd + i;
+		const newIndex = newMiddleEnd + i;
+		result.push({
+			type: 'unchanged',
+			content: oldLines[oldIndex],
+			oldLineNum: oldIndex + 1,
+			newLineNum: newIndex + 1,
+		});
+	}
+
+	return result;
+}
+
+function backtrackMyersDiff(trace: Int32Array[], oldLines: string[], newLines: string[], editDistance: number, offset: number): DiffLine[] {
+	let x = oldLines.length;
+	let y = newLines.length;
+	const result: DiffLine[] = [];
+
+	for (let d = editDistance; d >= 0; d--) {
+		const v = trace[d];
+		const k = x - y;
+		const prevK = k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1]) ? k + 1 : k - 1;
+		const prevX = v[offset + prevK];
+		const prevY = prevX - prevK;
+
+		while (x > prevX && y > prevY) {
+			result.unshift({
+				type: 'unchanged',
+				content: oldLines[x - 1],
+				oldLineNum: x,
+				newLineNum: y,
+			});
+			x--;
+			y--;
+		}
+
+		if (d > 0) {
+			if (x === prevX) {
+				result.unshift({
+					type: 'added',
+					content: newLines[prevY],
+					newLineNum: prevY + 1,
+				});
 			} else {
-				dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+				result.unshift({
+					type: 'removed',
+					content: oldLines[prevX],
+					oldLineNum: prevX + 1,
+				});
+			}
+		}
+
+		x = prevX;
+		y = prevY;
+	}
+
+	return result;
+}
+
+function computeExactDiff(oldLines: string[], newLines: string[]): DiffLine[] | null {
+	const max = oldLines.length + newLines.length;
+	const maxDistance = Math.min(max, MAX_EXACT_EDIT_DISTANCE);
+	const offset = maxDistance + 1;
+	const vectorWidth = maxDistance * 2 + 3;
+	const trace: Int32Array[] = [];
+	let v = new Int32Array(vectorWidth);
+
+	v.fill(-1);
+	v[offset + 1] = 0;
+
+	for (let d = 0; d <= maxDistance; d++) {
+		trace.push(new Int32Array(v));
+
+		for (let k = -d; k <= d; k += 2) {
+			const goDown = k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1]);
+			let x = goDown ? v[offset + k + 1] : v[offset + k - 1] + 1;
+			let y = x - k;
+
+			while (x < oldLines.length && y < newLines.length && oldLines[x] === newLines[y]) {
+				x++;
+				y++;
+			}
+
+			v[offset + k] = x;
+
+			if (x >= oldLines.length && y >= newLines.length) {
+				return backtrackMyersDiff(trace, oldLines, newLines, d, offset);
 			}
 		}
 	}
 
-	// Backtrack to find diff
-	const result: DiffLine[] = [];
-	let i = m;
-	let j = n;
-	const tempResult: DiffLine[] = [];
+	return null;
+}
 
-	while (i > 0 || j > 0) {
-		if (i > 0 && j > 0 && oldLines[i - 1] === newLines[j - 1]) {
-			tempResult.push({
-				type: 'unchanged',
-				content: oldLines[i - 1],
-				oldLineNum: i,
-				newLineNum: j,
-			});
-			i--;
-			j--;
-		} else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
-			tempResult.push({
-				type: 'added',
-				content: newLines[j - 1],
-				newLineNum: j,
-			});
-			j--;
-		} else if (i > 0) {
-			tempResult.push({
-				type: 'removed',
-				content: oldLines[i - 1],
-				oldLineNum: i,
-			});
-			i--;
-		}
-	}
+function computeDiff(oldText: string, newText: string): DiffLine[] {
+	const oldLines = oldText.split('\n');
+	const newLines = newText.split('\n');
 
-	// Reverse to get correct order
-	for (let k = tempResult.length - 1; k >= 0; k--) {
-		result.push(tempResult[k]);
-	}
-
-	return result;
+	return computeExactDiff(oldLines, newLines) ?? buildPrefixSuffixDiff(oldLines, newLines);
 }
 
 function generateUnifiedDiff(oldText: string, newText: string): string {
@@ -232,9 +308,7 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 	const [isDragging, setIsDragging] = useState(false);
 
 	// Calculate line data for minimap - must match what's rendered in the scroll container
-	const lineData = viewMode === 'unified'
-		? diffResult
-		: diffResult.filter(line => line.type !== 'added'); // For split view, use original side
+	const lineData = viewMode === 'unified' ? diffResult : diffResult.filter((line) => line.type !== 'added'); // For split view, use original side
 
 	const totalLines = lineData.length;
 
@@ -270,34 +344,43 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 	}, [scrollContainerRef, updateViewport, diffResult]);
 
 	// Handle click/drag on minimap
-	const handleMinimapInteraction = useCallback((clientY: number) => {
-		const minimapContent = minimapContentRef.current;
-		const container = scrollContainerRef.current;
-		if (!minimapContent || !container) return;
+	const handleMinimapInteraction = useCallback(
+		(clientY: number) => {
+			const minimapContent = minimapContentRef.current;
+			const container = scrollContainerRef.current;
+			if (!minimapContent || !container) return;
 
-		const rect = minimapContent.getBoundingClientRect();
-		const clickY = clientY - rect.top;
-		const ratio = Math.max(0, Math.min(1, clickY / rect.height));
+			const rect = minimapContent.getBoundingClientRect();
+			const clickY = clientY - rect.top;
+			const ratio = Math.max(0, Math.min(1, clickY / rect.height));
 
-		const targetScroll = ratio * container.scrollHeight - container.clientHeight / 2;
-		container.scrollTop = Math.max(0, Math.min(targetScroll, container.scrollHeight - container.clientHeight));
+			const targetScroll = ratio * container.scrollHeight - container.clientHeight / 2;
+			container.scrollTop = Math.max(0, Math.min(targetScroll, container.scrollHeight - container.clientHeight));
 
-		// Sync second scroll container in split view
-		if (secondScrollContainerRef?.current) {
-			secondScrollContainerRef.current.scrollTop = container.scrollTop;
-		}
-	}, [scrollContainerRef, secondScrollContainerRef]);
+			// Sync second scroll container in split view
+			if (secondScrollContainerRef?.current) {
+				secondScrollContainerRef.current.scrollTop = container.scrollTop;
+			}
+		},
+		[scrollContainerRef, secondScrollContainerRef],
+	);
 
-	const handleMouseDown = useCallback((e: React.MouseEvent) => {
-		setIsDragging(true);
-		handleMinimapInteraction(e.clientY);
-	}, [handleMinimapInteraction]);
-
-	const handleMouseMove = useCallback((e: MouseEvent) => {
-		if (isDragging) {
+	const handleMouseDown = useCallback(
+		(e: React.MouseEvent) => {
+			setIsDragging(true);
 			handleMinimapInteraction(e.clientY);
-		}
-	}, [isDragging, handleMinimapInteraction]);
+		},
+		[handleMinimapInteraction],
+	);
+
+	const handleMouseMove = useCallback(
+		(e: MouseEvent) => {
+			if (isDragging) {
+				handleMinimapInteraction(e.clientY);
+			}
+		},
+		[isDragging, handleMinimapInteraction],
+	);
 
 	const handleMouseUp = useCallback(() => {
 		setIsDragging(false);
@@ -317,8 +400,8 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 	if (totalLines === 0) return null;
 
 	// Split lines into left (original) and right (modified) columns
-	const leftLines = diffResult.filter(line => line.type !== 'added'); // removed + unchanged
-	const rightLines = diffResult.filter(line => line.type !== 'removed'); // added + unchanged
+	const leftLines = diffResult.filter((line) => line.type !== 'added'); // removed + unchanged
+	const rightLines = diffResult.filter((line) => line.type !== 'removed'); // added + unchanged
 
 	const leftLineHeightPercent = leftLines.length > 0 ? 100 / leftLines.length : 100;
 	const rightLineHeightPercent = rightLines.length > 0 ? 100 / rightLines.length : 100;
@@ -327,14 +410,10 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 		<div
 			ref={minimapRef}
 			className="relative flex w-20 flex-shrink-0 cursor-pointer select-none flex-col bg-zinc-50 shadow-[inset_1px_0px_0px_rgba(0,0,0,0.08)]"
-			onMouseDown={handleMouseDown}
-		>
+			onMouseDown={handleMouseDown}>
 			{/* Header spacer to align with content area */}
 			{headerHeight > 0 && (
-				<div
-					className="flex-shrink-0 bg-zinc-50 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]"
-					style={{ height: `${headerHeight}px` }}
-				/>
+				<div className="flex-shrink-0 bg-zinc-50 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]" style={{ height: `${headerHeight}px` }} />
 			)}
 
 			{/* Diff lines preview - two columns */}
@@ -344,11 +423,7 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 					{leftLines.map((line, idx) => (
 						<div
 							key={idx}
-							className={`absolute left-0 right-0 ${
-								line.type === 'removed'
-									? 'bg-red-400'
-									: 'bg-zinc-200'
-							}`}
+							className={`absolute left-0 right-0 ${line.type === 'removed' ? 'bg-red-400' : 'bg-zinc-200'}`}
 							style={{
 								top: `${idx * leftLineHeightPercent}%`,
 								height: `${Math.max(leftLineHeightPercent, 0.5)}%`,
@@ -366,11 +441,7 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 					{rightLines.map((line, idx) => (
 						<div
 							key={idx}
-							className={`absolute left-0 right-0 ${
-								line.type === 'added'
-									? 'bg-green-400'
-									: 'bg-zinc-200'
-							}`}
+							className={`absolute left-0 right-0 ${line.type === 'added' ? 'bg-green-400' : 'bg-zinc-200'}`}
 							style={{
 								top: `${idx * rightLineHeightPercent}%`,
 								height: `${Math.max(rightLineHeightPercent, 0.5)}%`,
@@ -413,7 +484,7 @@ export default function DiffCheckerComponent() {
 
 	// Pre-highlight all lines for performance
 	const highlightedLines = useMemo(() => {
-		return diffResult.map(line => ({
+		return diffResult.map((line) => ({
 			...line,
 			highlightedContent: highlightCode(line.content, effectiveLanguage),
 		}));
@@ -506,22 +577,27 @@ export default function DiffCheckerComponent() {
 					</button>
 				) : (
 					<>
-						<button onClick={() => setShowDiff(false)} className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
+						<button
+							onClick={() => setShowDiff(false)}
+							className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 							Edit
 						</button>
-						<button onClick={handleCopyDiff} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
+						<button
+							onClick={handleCopyDiff}
+							className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 							<IconCopy size={16} />
 							<span className="hidden sm:inline">Copy Diff</span>
 							<span className="sm:hidden">Copy</span>
 						</button>
-						<button onClick={handleClear} className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
+						<button
+							onClick={handleClear}
+							className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 							Clear
 						</button>
 						<select
 							value={language}
 							onChange={(e) => setLanguage(e.target.value as Language)}
-							className="min-h-11 cursor-pointer rounded-2xl border-none bg-zinc-50 px-3 py-2 pr-10 text-sm text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow,background-color] duration-200 ease-out hover:bg-zinc-100 focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:px-4"
-						>
+							className="min-h-11 cursor-pointer rounded-2xl border-none bg-zinc-50 px-3 py-2 pr-10 text-sm text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow,background-color] duration-200 ease-out hover:bg-zinc-100 focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:px-4">
 							{LANGUAGES.map((lang) => (
 								<option key={lang.value} value={lang.value}>
 									{lang.label}
@@ -559,20 +635,17 @@ export default function DiffCheckerComponent() {
 							<div className="flex min-w-[600px] overflow-hidden rounded-[20px] bg-white md:min-w-0">
 								{/* Old side */}
 								<div className="min-w-0 flex-1 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
-									<div className="bg-zinc-50 px-3 py-2 text-sm font-medium text-red-700 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]">Original</div>
+									<div className="bg-zinc-50 px-3 py-2 text-sm font-medium text-red-700 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]">
+										Original
+									</div>
 									<div
 										ref={leftScrollRef}
 										onScroll={handleLeftScroll}
-										className="hljs max-h-[60vh] overflow-auto font-mono text-sm"
-									>
+										className="hljs max-h-[60vh] overflow-auto font-mono text-sm">
 										{highlightedLines.map((line, idx) => {
 											if (line.type === 'added') return null;
 											return (
-												<div
-													key={idx}
-													className={`flex ${
-														line.type === 'removed' ? 'bg-red-100' : ''
-													}`}>
+												<div key={idx} className={`flex ${line.type === 'removed' ? 'bg-red-100' : ''}`}>
 													<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 														{line.oldLineNum || ''}
 													</span>
@@ -590,20 +663,17 @@ export default function DiffCheckerComponent() {
 								</div>
 								{/* New side */}
 								<div className="min-w-0 flex-1">
-									<div className="bg-zinc-50 px-3 py-2 text-sm font-medium text-green-700 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]">Modified</div>
+									<div className="bg-zinc-50 px-3 py-2 text-sm font-medium text-green-700 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]">
+										Modified
+									</div>
 									<div
 										ref={rightScrollRef}
 										onScroll={handleRightScroll}
-										className="hljs max-h-[60vh] overflow-auto font-mono text-sm"
-									>
+										className="hljs max-h-[60vh] overflow-auto font-mono text-sm">
 										{highlightedLines.map((line, idx) => {
 											if (line.type === 'removed') return null;
 											return (
-												<div
-													key={idx}
-													className={`flex ${
-														line.type === 'added' ? 'bg-green-100' : ''
-													}`}>
+												<div key={idx} className={`flex ${line.type === 'added' ? 'bg-green-100' : ''}`}>
 													<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 														{line.newLineNum || ''}
 													</span>
@@ -621,20 +691,11 @@ export default function DiffCheckerComponent() {
 								</div>
 							</div>
 						) : (
-							<div
-								ref={unifiedScrollRef}
-								className="hljs max-h-[70vh] overflow-auto rounded-[20px] bg-white font-mono text-sm"
-							>
+							<div ref={unifiedScrollRef} className="hljs max-h-[70vh] overflow-auto rounded-[20px] bg-white font-mono text-sm">
 								{highlightedLines.map((line, idx) => (
 									<div
 										key={idx}
-										className={`flex ${
-											line.type === 'added'
-												? 'bg-green-100'
-												: line.type === 'removed'
-													? 'bg-red-100'
-													: ''
-										}`}>
+										className={`flex ${line.type === 'added' ? 'bg-green-100' : line.type === 'removed' ? 'bg-red-100' : ''}`}>
 										<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 											{line.oldLineNum || ''}
 										</span>

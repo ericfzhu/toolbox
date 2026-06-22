@@ -20,6 +20,7 @@ export default function DotPatternComponent() {
 	const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
 	const [isDragging, setIsDragging] = useState<boolean>(false);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const convertedCanvasRef = useRef<HTMLCanvasElement | null>(null);
 	const compareContainerRef = useRef<HTMLDivElement>(null);
 	const sliderRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +33,7 @@ export default function DotPatternComponent() {
 			setOriginalImage(null);
 			setConvertedImage(null);
 			setImageDimensions(null);
+			convertedCanvasRef.current = null;
 			if (canvas) {
 				const ctx = canvas.getContext('2d');
 				ctx?.clearRect(0, 0, canvas.width, canvas.height);
@@ -162,6 +164,7 @@ export default function DotPatternComponent() {
 			}
 
 			// Set the converted image
+			convertedCanvasRef.current = dotCanvas;
 			setConvertedImage(dotCanvas.toDataURL('image/png'));
 		};
 		img.src = originalImage;
@@ -191,11 +194,11 @@ export default function DotPatternComponent() {
 	);
 
 	const handleDownload = useCallback(() => {
-		if (convertedImage && canvasRef.current) {
-			const canvas = canvasRef.current;
+		if (convertedImage) {
+			const canvas = convertedCanvasRef.current;
 			let mimeType: string;
 			let filename: string;
-			let quality = imageFormat === 'png' ? undefined : imageQuality;
+			const quality = imageFormat === 'png' ? undefined : imageQuality;
 
 			switch (imageFormat) {
 				case 'jpeg':
@@ -211,7 +214,7 @@ export default function DotPatternComponent() {
 					filename = 'converted-image.png';
 			}
 
-			const dataUrl = canvas.toDataURL(mimeType, quality);
+			const dataUrl = canvas ? canvas.toDataURL(mimeType, quality) : convertedImage;
 			const link = document.createElement('a');
 			link.href = dataUrl;
 			link.download = filename;
@@ -227,6 +230,7 @@ export default function DotPatternComponent() {
 		// Clear previous data to free memory
 		setConvertedImage(null);
 		setOriginalImage(null);
+		convertedCanvasRef.current = null;
 
 		const reader = new FileReader();
 		reader.onload = (e) => {
@@ -272,24 +276,26 @@ export default function DotPatternComponent() {
 			<div className="w-full max-w-sm space-y-4 lg:sticky lg:top-8 lg:w-80 lg:self-start">
 				<div
 					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,transform,background-color] duration-200 ease-out ${
-						isDragging ? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]' : 'bg-white'
+						isDragging
+							? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]'
+							: 'bg-white'
 					}`}
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}>
-						<div
-							className={`rounded-[20px] border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
-								isDragging ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
-							}`}>
-							<input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" ref={fileInputRef} />
-							<button
-								onClick={() => fileInputRef.current?.click()}
-								className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
-								Select Image
-							</button>
-							<p className="mt-3 text-sm text-zinc-500">or drag and drop an image here</p>
-						</div>
+					<div
+						className={`rounded-[20px] border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
+							isDragging ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
+						}`}>
+						<input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" ref={fileInputRef} />
+						<button
+							onClick={() => fileInputRef.current?.click()}
+							className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+							Select Image
+						</button>
+						<p className="mt-3 text-sm text-zinc-500">or drag and drop an image here</p>
 					</div>
+				</div>
 
 				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 					<div className="space-y-5 rounded-[20px] bg-zinc-50 px-4 py-4">
