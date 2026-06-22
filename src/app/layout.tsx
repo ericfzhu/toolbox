@@ -34,7 +34,7 @@ export default function RootLayout({
 				<link rel="icon" href="/icon.jpg" />
 				<link rel="apple-touch-icon" href="/icon.jpg" />
 			</head>
-			<body className={GeistMono.className}>
+			<body className={`${GeistMono.className} antialiased`}>
 				<ToastProvider>{children}</ToastProvider>
 				<ServiceWorkerRegistration />
 			</body>

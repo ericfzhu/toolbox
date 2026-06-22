@@ -268,104 +268,129 @@ export default function DotPatternComponent() {
 	}, [originalImage, dotSize, shape, convertImage]);
 
 	return (
-		<div className="flex gap-4">
-			<div className="w-64 space-y-4">
+		<div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+			<div className="w-full max-w-sm space-y-4 lg:sticky lg:top-8 lg:w-80 lg:self-start">
 				<div
-					className={`border-2 border-dashed p-4 text-center ${isDragging ? 'border-zinc-500 bg-zinc-100' : 'border-zinc-300'}`}
+					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,transform,background-color] duration-200 ease-out ${
+						isDragging ? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]' : 'bg-white'
+					}`}
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}>
-					<input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" ref={fileInputRef} />
-					<button onClick={() => fileInputRef.current?.click()} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4">
-						Select Image
-					</button>
-					<p className="mt-2 text-sm text-zinc-600">or drag and drop an image here</p>
-				</div>
-
-				<div className="space-y-2">
-					<label htmlFor="dotSize" className="block">
-						Size: {dotSize}px
-					</label>
-					<input
-						type="range"
-						id="dotSize"
-						value={dotSize}
-						onChange={handleDotSizeChange}
-						min="1"
-						max="50"
-						className="w-full accent-zinc-500"
-					/>
-				</div>
-
-				<div className="space-y-2">
-					<label className="block">Shape</label>
-					<div className="grid grid-cols-3 gap-2">
-						{(['circle', 'square', 'heart'] as const).map((shapeOption) => (
+						<div
+							className={`rounded-[20px] border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
+								isDragging ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
+							}`}>
+							<input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" ref={fileInputRef} />
 							<button
-								key={shapeOption}
-								onClick={() => setShape(shapeOption)}
-								className={`p-2 border rounded-sm ${
-									shape === shapeOption ? 'bg-zinc-200 border-zinc-400 hover:bg-zinc-300' : 'border-zinc-300 hover:bg-zinc-100'
-								}`}>
-								{shapeOption.charAt(0).toUpperCase() + shapeOption.slice(1)}
+								onClick={() => fileInputRef.current?.click()}
+								className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+								Select Image
 							</button>
-						))}
+							<p className="mt-3 text-sm text-zinc-500">or drag and drop an image here</p>
+						</div>
 					</div>
-				</div>
 
-				{convertedImage && (
-					<div className="space-y-4 border-t pt-4">
+				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="space-y-5 rounded-[20px] bg-zinc-50 px-4 py-4">
 						<div className="space-y-2">
-							<label className="block">Format</label>
+							<div className="flex items-center justify-between gap-4">
+								<label htmlFor="dotSize" className="block text-sm font-medium text-zinc-900">
+									Dot size
+								</label>
+								<span className="tabular-nums text-sm text-zinc-500">{dotSize}px</span>
+							</div>
+							<input
+								type="range"
+								id="dotSize"
+								value={dotSize}
+								onChange={handleDotSizeChange}
+								min="1"
+								max="50"
+								className="w-full accent-zinc-900"
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<label className="block text-sm font-medium text-zinc-900">Shape</label>
 							<div className="grid grid-cols-3 gap-2">
-								{(['png', 'jpeg', 'webp'] as const).map((format) => (
+								{(['circle', 'square', 'heart'] as const).map((shapeOption) => (
 									<button
-										key={format}
-										onClick={() => setImageFormat(format)}
-										className={`p-2 border rounded-sm ${
-											imageFormat === format
-												? 'bg-zinc-200 border-zinc-400 hover:bg-zinc-300'
-												: 'border-zinc-300 hover:bg-zinc-100'
+										key={shapeOption}
+										onClick={() => setShape(shapeOption)}
+										className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium capitalize transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+											shape === shapeOption
+												? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
+												: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
 										}`}>
-										{format.toUpperCase()}
+										{shapeOption}
 									</button>
 								))}
 							</div>
 						</div>
+					</div>
+				</div>
 
-						{imageFormat !== 'png' && (
+				{convertedImage && (
+					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="space-y-5 rounded-[20px] bg-zinc-50 px-4 py-4">
 							<div className="space-y-2">
-								<label htmlFor="quality" className="block">
-									Quality: {Math.round(imageQuality * 100)}%
-								</label>
-								<input
-									type="range"
-									id="quality"
-									value={imageQuality}
-									onChange={(e) => setImageQuality(Number(e.target.value))}
-									min="0.1"
-									max="1"
-									step="0.01"
-									className="w-full accent-zinc-500"
-								/>
+								<label className="block text-sm font-medium text-zinc-900">Export format</label>
+								<div className="grid grid-cols-3 gap-2">
+									{(['png', 'jpeg', 'webp'] as const).map((format) => (
+										<button
+											key={format}
+											onClick={() => setImageFormat(format)}
+											className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium uppercase tracking-[0.08em] transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+												imageFormat === format
+													? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
+													: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
+											}`}>
+											{format}
+										</button>
+									))}
+								</div>
 							</div>
-						)}
 
-						<button
-							onClick={handleDownload}
-							className="w-full bg-zinc-500 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2"
-							aria-label="Download converted image">
-							<IconDownload size={20} />
-							<span>Download</span>
-						</button>
+							{imageFormat !== 'png' && (
+								<div className="space-y-2">
+									<div className="flex items-center justify-between gap-4">
+										<label htmlFor="quality" className="block text-sm font-medium text-zinc-900">
+											Quality
+										</label>
+										<span className="tabular-nums text-sm text-zinc-500">{Math.round(imageQuality * 100)}%</span>
+									</div>
+									<input
+										type="range"
+										id="quality"
+										value={imageQuality}
+										onChange={(e) => setImageQuality(Number(e.target.value))}
+										min="0.1"
+										max="1"
+										step="0.01"
+										className="w-full accent-zinc-900"
+									/>
+								</div>
+							)}
+
+							<button
+								onClick={handleDownload}
+								className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
+								aria-label="Download converted image">
+								<IconDownload size={20} />
+								<span>Download</span>
+							</button>
+						</div>
 					</div>
 				)}
 			</div>
 
 			{!originalImage ? (
 				<div className="flex-1 flex items-center justify-center">
-					<div className="border-2 border-dashed border-zinc-300 rounded-sm w-[70vw] h-[70vh] flex items-center justify-center text-zinc-500">
-						Upload an image to get started
+					<div className="flex h-[60vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+						<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-pretty text-zinc-500">
+							Upload an image to preview the original and dot pattern side by side.
+						</div>
 					</div>
 				</div>
 			) : (
@@ -374,48 +399,63 @@ export default function DotPatternComponent() {
 				imageDimensions && (
 					<div className="flex-1 flex flex-col items-center">
 						<div
-							className="relative"
+							className="relative overflow-hidden rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]"
 							ref={compareContainerRef}
 							style={{
-								width: imageDimensions.width >= imageDimensions.height ? '70vw' : 'auto',
-								height: imageDimensions.height > imageDimensions.width ? '70vw' : 'auto',
+								width: imageDimensions.width >= imageDimensions.height ? '100%' : 'auto',
+								height: imageDimensions.height > imageDimensions.width ? '100%' : 'auto',
 								maxWidth: '100%',
 								maxHeight: '70vh',
 								aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
 							}}>
+							<div className="pointer-events-none absolute left-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+								Original
+							</div>
+							<div className="pointer-events-none absolute right-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+								Dot pattern
+							</div>
 							<Image
 								src={originalImage}
 								alt="Original"
-								className="absolute top-0 left-0 select-none pointer-events-none object-contain"
+								className="absolute top-3 left-3 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
 								style={{
 									clipPath: `inset(0 ${100 - comparePosition}% 0 0)`,
 								}}
 								fill
-								sizes="50vw"
+								sizes="70vw"
 							/>
 							<Image
 								src={convertedImage}
 								alt="Converted"
-								className="absolute top-0 left-0 select-none pointer-events-none object-contain"
+								className="absolute top-3 left-3 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
 								style={{
 									clipPath: `inset(0 0 0 ${comparePosition}%)`,
 								}}
 								fill
-								sizes="50vw"
+								sizes="70vw"
 							/>
 							<div
 								ref={sliderRef}
+								className="group absolute top-3 z-20"
 								style={{
-									position: 'absolute',
-									top: 0,
 									left: `${comparePosition}%`,
-									width: '4px',
-									height: '100%',
-									backgroundColor: 'white',
+									height: 'calc(100% - 24px)',
+									width: '40px',
+									transform: 'translateX(-20px)',
 									cursor: 'ew-resize',
 								}}
-								onMouseDown={handleSliderDrag}
-							/>
+								onMouseDown={handleSliderDrag}>
+								<div className="relative mx-auto h-full w-1 rounded-full bg-white/95 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_4px_10px_rgba(0,0,0,0.18)] transition-[background-color,box-shadow] duration-200 ease-out group-hover:bg-white" />
+								<div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_8px_20px_rgba(0,0,0,0.14)] transition-[transform,box-shadow] duration-200 ease-out group-hover:scale-105 group-active:scale-[0.96]">
+									<>
+										<span className="-mr-0.5">L</span>
+										<span className="-ml-0.5">R</span>
+									</>
+								</div>
+							</div>
+							<div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white tabular-nums backdrop-blur-sm">
+								{Math.round(comparePosition)}%
+							</div>
 						</div>
 					</div>
 				)
