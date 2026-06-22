@@ -7,68 +7,18 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDownload, useImageUpload } from '@/hooks';
 import { ImageDimensions } from '@/lib/types';
 
-function gaussianBlur(imgData: ImageData, r: number, sigma: number): ImageData {
-	const width: number = imgData.width;
-	const height: number = imgData.height;
-	const data: Uint8ClampedArray = imgData.data;
-	const kernelSize: number = 2 * Math.max(1, Math.floor(r)) + 1;
-	const kernel: number[][] = Array.from({ length: kernelSize }, () => Array(kernelSize).fill(0));
-
-	// Generate Gaussian kernel
-	let sum: number = 0;
-	for (let y = 0; y < kernelSize; y++) {
-		for (let x = 0; x < kernelSize; x++) {
-			const rx = x - (kernelSize - 1) / 2;
-			const ry = y - (kernelSize - 1) / 2;
-			const value: number = Math.exp(-(rx * rx + ry * ry) / (2 * sigma * sigma));
-			kernel[y][x] = value;
-			sum += value;
-		}
-	}
-
-	// Normalize kernel
-	for (let y = 0; y < kernelSize; y++) {
-		for (let x = 0; x < kernelSize; x++) {
-			kernel[y][x] /= sum;
-		}
-	}
-
-	// Apply convolution
-	const result: Uint8ClampedArray = new Uint8ClampedArray(data.length);
-	const halfKernel = Math.floor(kernelSize / 2);
-
-	for (let y = 0; y < height; y++) {
-		for (let x = 0; x < width; x++) {
-			let r = 0,
-				g = 0,
-				b = 0,
-				a = 0;
-			for (let ky = 0; ky < kernelSize; ky++) {
-				for (let kx = 0; kx < kernelSize; kx++) {
-					const ix = Math.min(Math.max(x + kx - halfKernel, 0), width - 1);
-					const iy = Math.min(Math.max(y + ky - halfKernel, 0), height - 1);
-					const i = (iy * width + ix) * 4;
-					const weight = kernel[ky][kx];
-					r += data[i] * weight;
-					g += data[i + 1] * weight;
-					b += data[i + 2] * weight;
-					a += data[i + 3] * weight;
-				}
-			}
-			const i = (y * width + x) * 4;
-			result[i] = r;
-			result[i + 1] = g;
-			result[i + 2] = b;
-			result[i + 3] = a;
-		}
-	}
-
-	return new ImageData(result, width, height);
+interface BlurWorkerResponse {
+	id: number;
+	width: number;
+	height: number;
+	buffer: ArrayBuffer;
 }
 
 export default function GaussianBlurComponent(): JSX.Element {
-	const [r, setR] = useState<number>(2);
+	const [radius, setRadius] = useState<number>(2);
 	const [sigma, setSigma] = useState<number>(5);
+	const [appliedRadius, setAppliedRadius] = useState<number>(2);
+	const [appliedSigma, setAppliedSigma] = useState<number>(5);
 	const [blurredImage, setBlurredImage] = useState<string | null>(null);
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 	const [comparePosition, setComparePosition] = useState<number>(50);
@@ -90,13 +40,66 @@ export default function GaussianBlurComponent(): JSX.Element {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const compareContainerRef = useRef<HTMLDivElement>(null);
 	const sliderRef = useRef<HTMLDivElement>(null);
+	const workerRef = useRef<Worker | null>(null);
+	const activeRequestIdRef = useRef<number>(0);
+	const blurredImageUrlRef = useRef<string | null>(null);
 
-	// Cleanup on unmount to prevent memory leaks
 	useEffect(() => {
-		const canvas = canvasRef.current;
+		const worker = new Worker(new URL('../../workers/gaussianBlurWorker.ts', import.meta.url), { type: 'module' });
+		workerRef.current = worker;
+
+		const handleWorkerMessage = (event: MessageEvent<BlurWorkerResponse>) => {
+			if (event.data.id !== activeRequestIdRef.current) return;
+
+			const canvas = canvasRef.current;
+			const ctx = canvas?.getContext('2d');
+			if (!canvas || !ctx) {
+				setIsProcessing(false);
+				return;
+			}
+
+			const { width, height, buffer } = event.data;
+			const blurredData = new ImageData(new Uint8ClampedArray(buffer), width, height);
+			ctx.putImageData(blurredData, 0, 0);
+
+			canvas.toBlob((blob) => {
+				if (event.data.id !== activeRequestIdRef.current) return;
+				if (!blob) {
+					setIsProcessing(false);
+					return;
+				}
+
+				if (blurredImageUrlRef.current) {
+					URL.revokeObjectURL(blurredImageUrlRef.current);
+				}
+
+				const nextUrl = URL.createObjectURL(blob);
+				blurredImageUrlRef.current = nextUrl;
+				setBlurredImage(nextUrl);
+				setIsProcessing(false);
+			}, 'image/png');
+		};
+
+		const handleWorkerError = (error: ErrorEvent) => {
+			console.error('Error applying blur:', error);
+			setIsProcessing(false);
+		};
+
+		worker.addEventListener('message', handleWorkerMessage);
+		worker.addEventListener('error', handleWorkerError);
 
 		return () => {
-			setBlurredImage(null);
+			worker.removeEventListener('message', handleWorkerMessage);
+			worker.removeEventListener('error', handleWorkerError);
+			worker.terminate();
+			workerRef.current = null;
+
+			if (blurredImageUrlRef.current) {
+				URL.revokeObjectURL(blurredImageUrlRef.current);
+				blurredImageUrlRef.current = null;
+			}
+
+			const canvas = canvasRef.current;
 			if (canvas) {
 				const ctx = canvas.getContext('2d');
 				ctx?.clearRect(0, 0, canvas.width, canvas.height);
@@ -106,46 +109,59 @@ export default function GaussianBlurComponent(): JSX.Element {
 		};
 	}, []);
 
-	const applyBlur = useCallback((): void => {
-		if (!originalImage) return;
+	useEffect(() => {
+		if (!originalImage) {
+			if (blurredImageUrlRef.current) {
+				URL.revokeObjectURL(blurredImageUrlRef.current);
+				blurredImageUrlRef.current = null;
+			}
+			setBlurredImage(null);
+			setIsProcessing(false);
+			return;
+		}
 
 		setIsProcessing(true);
 		const img = new window.Image();
 		img.onload = (): void => {
-			const canvas: HTMLCanvasElement | null = canvasRef.current;
-			if (canvas) {
-				canvas.width = img.width;
-				canvas.height = img.height;
-				const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d');
-				if (ctx) {
-					ctx.drawImage(img, 0, 0);
-					const imageData: ImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-					try {
-						const blurredData: ImageData = gaussianBlur(imageData, r, sigma);
-						ctx.putImageData(blurredData, 0, 0);
-						setBlurredImage(canvas.toDataURL());
-					} catch (error) {
-						console.error('Error applying blur:', error);
-						// Handle the error, maybe set an error state or show a message to the user
-					}
-				}
+			const canvas = canvasRef.current;
+			const ctx = canvas?.getContext('2d');
+			const worker = workerRef.current;
+			if (!canvas || !ctx || !worker) {
+				setIsProcessing(false);
+				return;
 			}
-			setIsProcessing(false);
+
+			canvas.width = img.width;
+			canvas.height = img.height;
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.drawImage(img, 0, 0);
+
+			const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			const requestId = activeRequestIdRef.current + 1;
+			activeRequestIdRef.current = requestId;
+
+			worker.postMessage(
+				{
+					id: requestId,
+					width: canvas.width,
+					height: canvas.height,
+					radius: appliedRadius,
+					sigma: appliedSigma,
+					buffer: imageData.data.buffer,
+				},
+				[imageData.data.buffer],
+			);
 		};
 		img.src = originalImage;
-	}, [originalImage, r, sigma]);
-
-	useEffect(() => {
-		if (originalImage) applyBlur();
-	}, [originalImage, applyBlur]);
+	}, [appliedRadius, appliedSigma, originalImage]);
 
 	function handleSliderChange(e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<number>>) {
 		setter(parseFloat(e.target.value));
 	}
 
-	function handleSliderRelease() {
-		applyBlur();
+	function commitBlurSettings() {
+		setAppliedRadius(radius);
+		setAppliedSigma(sigma);
 	}
 
 	const handleCompareSliderDrag = useCallback(
@@ -157,8 +173,8 @@ export default function GaussianBlurComponent(): JSX.Element {
 			const startX = e.clientX;
 			const startPosition = comparePosition;
 
-			const handleMouseMove = (e: MouseEvent) => {
-				const deltaX = e.clientX - startX;
+			const handleMouseMove = (event: MouseEvent) => {
+				const deltaX = event.clientX - startX;
 				const deltaPercent = (deltaX / container.offsetWidth) * 100;
 				setComparePosition(Math.max(0, Math.min(100, startPosition + deltaPercent)));
 			};
@@ -211,15 +227,16 @@ export default function GaussianBlurComponent(): JSX.Element {
 								<label htmlFor="r" className="block text-sm font-medium text-zinc-900">
 									Radius
 								</label>
-								<span className="tabular-nums text-sm text-zinc-500">{r.toFixed(1)}px</span>
+								<span className="tabular-nums text-sm text-zinc-500">{radius.toFixed(1)}px</span>
 							</div>
 							<input
 								type="range"
 								id="r"
-								value={r}
-								onChange={(e) => handleSliderChange(e, setR)}
-								onMouseUp={handleSliderRelease}
-								onTouchEnd={handleSliderRelease}
+								value={radius}
+								onChange={(e) => handleSliderChange(e, setRadius)}
+								onMouseUp={commitBlurSettings}
+								onTouchEnd={commitBlurSettings}
+								onBlur={commitBlurSettings}
 								min="0.5"
 								max="10"
 								step="0.1"
@@ -239,8 +256,9 @@ export default function GaussianBlurComponent(): JSX.Element {
 								id="sigma"
 								value={sigma}
 								onChange={(e) => handleSliderChange(e, setSigma)}
-								onMouseUp={handleSliderRelease}
-								onTouchEnd={handleSliderRelease}
+								onMouseUp={commitBlurSettings}
+								onTouchEnd={commitBlurSettings}
+								onBlur={commitBlurSettings}
 								min="0.1"
 								max="10"
 								step="0.1"
@@ -253,14 +271,14 @@ export default function GaussianBlurComponent(): JSX.Element {
 				{blurredImage && (
 					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 						<div className="rounded-[20px] bg-zinc-50 p-4">
-						<button
-							onClick={handleDownload}
-							className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
-							aria-label="Download blurred image">
-							<IconDownload size={20} />
-							<span>Download</span>
-						</button>
-					</div>
+							<button
+								onClick={handleDownload}
+								className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
+								aria-label="Download blurred image">
+								<IconDownload size={20} />
+								<span>Download</span>
+							</button>
+						</div>
 					</div>
 				)}
 			</div>
@@ -303,6 +321,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 								}}
 								fill
 								sizes="70vw"
+								unoptimized
 							/>
 							<Image
 								src={blurredImage}
@@ -313,6 +332,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 								}}
 								fill
 								sizes="70vw"
+								unoptimized
 							/>
 							<div
 								ref={sliderRef}
@@ -337,6 +357,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 								{Math.round(comparePosition)}%
 							</div>
 						</div>
+						{isProcessing && <p className="mt-3 text-sm text-zinc-500">Processing image...</p>}
 					</div>
 				)
 			)}
