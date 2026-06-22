@@ -80,6 +80,9 @@ const SKIP_DIRECTORIES = new Set([
 	'logs',
 ]);
 
+const SCAN_PROGRESS_INTERVAL = 50;
+const READ_BATCH_SIZE = 100;
+
 function isCodeFile(fileName: string): boolean {
 	const lowerName = fileName.toLowerCase();
 	// Handle special files without extensions
@@ -101,24 +104,47 @@ interface FileEntry {
 	handle: FileSystemFileHandle;
 }
 
+interface CollectFileOptions {
+	onProgress?: (scanned: number) => void;
+	shouldAbort?: () => boolean;
+}
+
+interface ProcessFileOptions {
+	batchSize?: number;
+	onBatch?: (content: string, processed: number, total: number) => void;
+	shouldAbort?: () => boolean;
+}
+
+function countNewlines(text: string): number {
+	let count = 0;
+	for (let i = 0; i < text.length; i += 1) {
+		if (text.charCodeAt(i) === 10) count += 1;
+	}
+	return count;
+}
+
 // Collect all file handles first (fast), then read contents in parallel batches
 async function collectFileHandles(
 	dirHandle: FileSystemDirectoryHandle,
 	path: string = '',
 	files: FileEntry[] = [],
-	onProgress?: (scanned: number) => void,
+	options: CollectFileOptions = {},
 ): Promise<FileEntry[]> {
+	if (options.shouldAbort?.()) return files;
+
 	try {
 		for await (const [name, handle] of (dirHandle as any).entries()) {
+			if (options.shouldAbort?.()) break;
+
 			const fullPath = path ? `${path}/${name}` : name;
 
 			if (handle.kind === 'file') {
 				if (isCodeFile(name)) {
 					files.push({ path: fullPath, handle: handle as FileSystemFileHandle });
-					onProgress?.(files.length);
+					options.onProgress?.(files.length);
 				}
 			} else if (handle.kind === 'directory' && !shouldSkipDirectory(name)) {
-				await collectFileHandles(handle as FileSystemDirectoryHandle, fullPath, files, onProgress);
+				await collectFileHandles(handle as FileSystemDirectoryHandle, fullPath, files, options);
 			}
 		}
 	} catch (error) {
@@ -130,17 +156,20 @@ async function collectFileHandles(
 // Process files in parallel batches for speed
 async function processFilesInBatches(
 	files: FileEntry[],
-	batchSize: number = 50,
-	onProgress?: (processed: number, total: number) => void,
-): Promise<string[]> {
-	const results: string[] = [];
+	options: ProcessFileOptions = {},
+): Promise<boolean> {
+	const batchSize = options.batchSize ?? READ_BATCH_SIZE;
 	let processed = 0;
 
 	for (let i = 0; i < files.length; i += batchSize) {
+		if (options.shouldAbort?.()) return false;
+
 		const batch = files.slice(i, i + batchSize);
 
 		const batchResults = await Promise.all(
 			batch.map(async ({ path, handle }) => {
+				if (options.shouldAbort?.()) return '';
+
 				try {
 					const file = await handle.getFile();
 					const text = await file.text();
@@ -152,12 +181,13 @@ async function processFilesInBatches(
 			}),
 		);
 
-		results.push(...batchResults.filter(Boolean));
+		if (options.shouldAbort?.()) return false;
+
 		processed += batch.length;
-		onProgress?.(processed, files.length);
+		options.onBatch?.(batchResults.filter(Boolean).join(''), processed, files.length);
 	}
 
-	return results;
+	return true;
 }
 
 interface ProcessingStatus {
@@ -171,6 +201,7 @@ export default function CodeAggregatorComponent() {
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [status, setStatus] = useState<ProcessingStatus | null>(null);
 	const [aggregatedContent, setAggregatedContent] = useState('');
+	const [resultStats, setResultStats] = useState({ charCount: 0, newlineCount: 0 });
 	const abortRef = useRef(false);
 
 	const { copy } = useClipboard();
@@ -188,11 +219,19 @@ export default function CodeAggregatorComponent() {
 			const directoryHandle = await (window as any).showDirectoryPicker();
 			setIsProcessing(true);
 			setAggregatedContent('');
+			setResultStats({ charCount: 0, newlineCount: 0 });
 			setStatus({ phase: 'scanning', scannedFiles: 0, processedFiles: 0, totalFiles: 0 });
 
+			let lastScanProgress = 0;
+
 			// Phase 1: Collect file handles (fast - just directory traversal)
-			const files = await collectFileHandles(directoryHandle, '', [], (scanned) => {
-				setStatus((prev) => (prev ? { ...prev, scannedFiles: scanned } : null));
+			const files = await collectFileHandles(directoryHandle, '', [], {
+				shouldAbort: () => abortRef.current,
+				onProgress: (scanned) => {
+					if (scanned - lastScanProgress < SCAN_PROGRESS_INTERVAL) return;
+					lastScanProgress = scanned;
+					setStatus((prev) => (prev ? { ...prev, scannedFiles: scanned } : null));
+				},
 			});
 
 			if (abortRef.current) return;
@@ -206,18 +245,24 @@ export default function CodeAggregatorComponent() {
 
 			setStatus({ phase: 'reading', scannedFiles: files.length, processedFiles: 0, totalFiles: files.length });
 
-			// Phase 2: Read file contents in parallel batches
-			const results = await processFilesInBatches(files, 50, (processed, total) => {
-				if (!abortRef.current) {
+			// Phase 2: Read file contents in parallel batches and append each batch as it finishes.
+			const completed = await processFilesInBatches(files, {
+				batchSize: READ_BATCH_SIZE,
+				shouldAbort: () => abortRef.current,
+				onBatch: (batchContent, processed, total) => {
+					if (abortRef.current) return;
+
+					setAggregatedContent((prev) => prev + batchContent);
+					setResultStats((prev) => ({
+						charCount: prev.charCount + batchContent.length,
+						newlineCount: prev.newlineCount + countNewlines(batchContent),
+					}));
 					setStatus((prev) => (prev ? { ...prev, processedFiles: processed, totalFiles: total } : null));
-				}
+				},
 			});
 
-			if (abortRef.current) return;
+			if (abortRef.current || !completed) return;
 
-			// Join all results at the end (more efficient than string concatenation)
-			const content = results.join('');
-			setAggregatedContent(content);
 			setStatus({ phase: 'done', scannedFiles: files.length, processedFiles: files.length, totalFiles: files.length });
 		} catch (error: any) {
 			if (error.name !== 'AbortError') {
@@ -233,6 +278,8 @@ export default function CodeAggregatorComponent() {
 		abortRef.current = true;
 		setIsProcessing(false);
 		setStatus(null);
+		setAggregatedContent('');
+		setResultStats({ charCount: 0, newlineCount: 0 });
 	}, []);
 
 	const handleCopy = useCallback(() => {
@@ -249,92 +296,106 @@ export default function CodeAggregatorComponent() {
 
 	const handleClear = useCallback(() => {
 		setAggregatedContent('');
+		setResultStats({ charCount: 0, newlineCount: 0 });
 		setStatus(null);
 	}, []);
 
-	// Calculate character/line counts
-	const charCount = aggregatedContent.length;
-	const lineCount = aggregatedContent ? aggregatedContent.split('\n').length : 0;
+	const charCount = resultStats.charCount;
+	const lineCount = charCount > 0 ? resultStats.newlineCount + 1 : 0;
 
 	return (
-		<div className="flex flex-col gap-4 w-full max-w-4xl mx-auto">
-			<div className="border-2 border-dashed p-6 text-center border-zinc-300 rounded-sm">
-				<button
-					onClick={handleFolderSelect}
-					disabled={isProcessing}
-					className="bg-zinc-700 hover:bg-zinc-800 disabled:bg-zinc-400 text-white py-2 px-6 rounded-sm transition-colors">
-					{isProcessing ? 'Processing...' : 'Select Folder'}
-				</button>
-				<p className="mt-3 text-sm text-zinc-600">Select a folder to aggregate code files</p>
-				<p className="mt-1 text-xs text-zinc-400">
-					Automatically skips node_modules, .git, dist, build, and other non-source directories
-				</p>
+		<div className="grid w-full max-w-6xl gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-8">
+			<div className="space-y-4">
+				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="rounded-[20px] border border-dashed border-zinc-300 bg-zinc-50/60 px-5 py-6 text-center">
+						<button
+							onClick={handleFolderSelect}
+							disabled={isProcessing}
+							className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-5 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none disabled:active:scale-100">
+							{isProcessing ? 'Processing...' : 'Select Folder'}
+						</button>
+						<p className="mt-3 text-sm text-zinc-600">Select a folder to aggregate code files</p>
+						<p className="mx-auto mt-1 max-w-[18rem] text-xs leading-5 text-zinc-400">
+							Automatically skips node_modules, .git, dist, build, and other non-source directories
+						</p>
+					</div>
+				</div>
+
+				{isProcessing && status && (
+					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="rounded-[20px] bg-zinc-50 p-4">
+							<div className="mb-3 flex items-center justify-between gap-4">
+								<span className="text-sm font-medium text-zinc-800">
+									{status.phase === 'scanning' && 'Scanning directories...'}
+									{status.phase === 'reading' && 'Reading files...'}
+								</span>
+								<button
+									onClick={handleCancel}
+									className="inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-sm text-zinc-500 transition-[transform,background-color,color] duration-200 ease-out hover:bg-white hover:text-zinc-900 active:scale-[0.96]">
+									Cancel
+								</button>
+							</div>
+							{status.phase === 'scanning' && (
+								<div className="text-sm text-zinc-600">
+									Found <span className="tabular-nums">{status.scannedFiles}</span> code files...
+								</div>
+							)}
+							{status.phase === 'reading' && (
+								<>
+									<div className="mb-2 h-2 w-full rounded-full bg-zinc-200 p-px">
+										<div
+											className="h-full rounded-full bg-zinc-900 transition-[width] duration-150 ease-out"
+											style={{ width: `${(status.processedFiles / status.totalFiles) * 100}%` }}
+										/>
+									</div>
+									<div className="text-sm text-zinc-600">
+										<span className="tabular-nums">{status.processedFiles}</span> /{' '}
+										<span className="tabular-nums">{status.totalFiles}</span> files processed
+									</div>
+								</>
+							)}
+						</div>
+					</div>
+				)}
 			</div>
 
-			{/* Progress indicator */}
-			{isProcessing && status && (
-				<div className="bg-zinc-50 border border-zinc-200 rounded-sm p-4">
-					<div className="flex items-center justify-between mb-2">
-						<span className="text-sm font-medium text-zinc-700">
-							{status.phase === 'scanning' && 'Scanning directories...'}
-							{status.phase === 'reading' && 'Reading files...'}
-						</span>
-						<button onClick={handleCancel} className="text-sm text-zinc-500 hover:text-zinc-700">
-							Cancel
-						</button>
-					</div>
-					{status.phase === 'scanning' && (
-						<div className="text-sm text-zinc-600">Found {status.scannedFiles} code files...</div>
-					)}
-					{status.phase === 'reading' && (
-						<>
-							<div className="w-full bg-zinc-200 rounded-full h-2 mb-2">
-								<div
-									className="bg-zinc-600 h-2 rounded-full transition-all duration-150"
-									style={{ width: `${(status.processedFiles / status.totalFiles) * 100}%` }}
-								/>
-							</div>
-							<div className="text-sm text-zinc-600">
-								{status.processedFiles} / {status.totalFiles} files processed
-							</div>
-						</>
-					)}
-				</div>
-			)}
-
-			{/* Results */}
 			{aggregatedContent && (
-				<div className="flex flex-col gap-3">
-					{/* Stats bar */}
-					<div className="flex items-center gap-4 text-sm text-zinc-600">
-						<span>{status?.totalFiles || 0} files</span>
-						<span>{lineCount.toLocaleString()} lines</span>
-						<span>{(charCount / 1024).toFixed(1)} KB</span>
-						<div className="flex-1" />
-						<button onClick={handleClear} className="text-zinc-500 hover:text-zinc-700">
-							Clear
-						</button>
-					</div>
+				<div className="min-w-0">
+					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="rounded-[20px] bg-zinc-50 p-4">
+							<div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-zinc-600">
+								<span className="tabular-nums">{status?.totalFiles || 0} files</span>
+								<span className="tabular-nums">{lineCount.toLocaleString()} lines</span>
+								<span className="tabular-nums">{(charCount / 1024).toFixed(1)} KB</span>
+								<div className="flex-1" />
+								<button
+									onClick={handleClear}
+									className="inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-sm text-zinc-500 transition-[transform,background-color,color] duration-200 ease-out hover:bg-white hover:text-zinc-900 active:scale-[0.96]">
+									Clear
+								</button>
+							</div>
 
-					<textarea
-						value={aggregatedContent}
-						readOnly
-						className="w-full h-[50vh] p-3 border border-zinc-300 rounded-sm font-mono text-sm"
-					/>
+							<textarea
+								value={aggregatedContent}
+								readOnly
+								className="h-[50vh] w-full resize-none rounded-[20px] bg-white p-4 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] outline-none"
+							/>
 
-					<div className="flex gap-2">
-						<button
-							onClick={handleCopy}
-							className="flex-1 bg-zinc-600 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2 transition-colors">
-							<IconCopy size={18} />
-							<span>Copy</span>
-						</button>
-						<button
-							onClick={handleDownload}
-							className="flex-1 bg-zinc-600 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2 transition-colors">
-							<IconDownload size={18} />
-							<span>Download</span>
-						</button>
+							<div className="mt-3 grid gap-2 sm:grid-cols-2">
+								<button
+									onClick={handleCopy}
+									className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+									<IconCopy size={18} />
+									<span>Copy</span>
+								</button>
+								<button
+									onClick={handleDownload}
+									className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+									<IconDownload size={18} />
+									<span>Download</span>
+								</button>
+							</div>
+						</div>
 					</div>
 				</div>
 			)}

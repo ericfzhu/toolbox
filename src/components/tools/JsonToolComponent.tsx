@@ -232,47 +232,45 @@ export default function JsonToolComponent() {
 	}, [parseResult]);
 
 	return (
-		<div className="flex flex-col gap-4 w-full">
-			{/* Controls */}
-			<div className="flex flex-wrap gap-2 items-center">
+		<div className="flex w-full flex-col gap-5">
+			<div className="flex flex-wrap items-center gap-2 rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 				<button
 					onClick={handleFormat}
 					disabled={!parseResult.valid || !input.trim()}
-					className="bg-zinc-700 hover:bg-zinc-800 disabled:bg-zinc-300 text-white px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-2 text-sm sm:text-base">
+					className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-zinc-900 px-3 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none sm:px-4">
 					Format
-					<span className="text-xs text-zinc-400 hidden sm:inline">⌘⇧F</span>
+					<span className="hidden text-xs text-zinc-400 sm:inline">⌘⇧F</span>
 				</button>
 				<button
 					onClick={handleMinify}
 					disabled={!parseResult.valid || !input.trim()}
-					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-2 text-sm sm:text-base">
+					className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] disabled:cursor-not-allowed disabled:text-zinc-400 sm:px-4">
 					Minify
-					<span className="text-xs text-zinc-400 hidden sm:inline">⌘⇧M</span>
+					<span className="hidden text-xs text-zinc-400 sm:inline">⌘⇧M</span>
 				</button>
 				<button
 					onClick={handleCopy}
 					disabled={!parseResult.valid || !input.trim()}
-					className="bg-zinc-200 hover:bg-zinc-300 disabled:bg-zinc-100 disabled:text-zinc-400 px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-2 text-sm sm:text-base">
+					className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] disabled:cursor-not-allowed disabled:text-zinc-400 sm:px-4">
 					{copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
 					{copied ? 'Copied!' : 'Copy'}
 				</button>
-				<button onClick={handleClear} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
+				<button onClick={handleClear} className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 					Clear
 				</button>
-				<button onClick={handleSample} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
+				<button onClick={handleSample} className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 					Sample
 				</button>
 
-				<div className="hidden sm:block flex-1" />
+				<div className="hidden flex-1 sm:block" />
 
-				{/* Indent size */}
 				<div className="flex items-center gap-2">
-					<label className="text-sm text-zinc-600 hidden sm:inline">Indent:</label>
-					<div className="border border-zinc-300 rounded-sm pr-2">
+					<label className="hidden text-sm text-zinc-600 sm:inline">Indent:</label>
+					<div className="rounded-2xl bg-zinc-50 pr-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 						<select
 							value={indentSize}
 							onChange={(e) => setIndentSize(Number(e.target.value))}
-							className="pl-2 sm:pl-4 pr-2 h-10 bg-transparent border-none outline-none cursor-pointer text-sm sm:text-base">
+							className="h-11 cursor-pointer border-none bg-transparent pl-3 pr-8 text-sm outline-none sm:pl-4">
 							<option value={2}>2 spaces</option>
 							<option value={4}>4 spaces</option>
 							<option value={1}>1 tab</option>
@@ -280,42 +278,40 @@ export default function JsonToolComponent() {
 					</div>
 				</div>
 
-				{/* View mode */}
-				<div className="flex border border-zinc-300 rounded-sm overflow-hidden">
+				<div className="flex rounded-2xl bg-zinc-50 p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 					<button
 						onClick={() => setViewMode('formatted')}
-						className={`px-2 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'formatted' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`min-h-9 rounded-xl px-2 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-4 ${viewMode === 'formatted' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 						<span className="hidden sm:inline">Formatted</span>
 						<span className="sm:hidden">Fmt</span>
 					</button>
 					<button
 						onClick={() => setViewMode('tree')}
-						className={`px-2 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'tree' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`min-h-9 rounded-xl px-2 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-4 ${viewMode === 'tree' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 						Tree
 					</button>
 					<button
 						onClick={() => setViewMode('minified')}
-						className={`px-2 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'minified' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+						className={`min-h-9 rounded-xl px-2 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-4 ${viewMode === 'minified' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 						<span className="hidden sm:inline">Minified</span>
 						<span className="sm:hidden">Min</span>
 					</button>
 				</div>
 			</div>
 
-			{/* Status bar */}
 			{input.trim() && (
-				<div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+				<div className="flex flex-wrap items-center gap-2 rounded-[20px] bg-zinc-50 px-4 py-3 text-xs shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.06)] sm:gap-4 sm:text-sm">
 					{parseResult.valid ? (
 						<>
-							<span className="text-green-600 flex items-center gap-1">
+							<span className="flex items-center gap-1 text-green-600">
 								<IconCheck size={14} /> Valid JSON
 							</span>
 							{stats && (
-								<span className="text-zinc-500 hidden sm:inline">
+								<span className="hidden text-zinc-500 sm:inline">
 									{stats.objects} objects, {stats.arrays} arrays, {stats.strings} strings, {stats.numbers} numbers
 								</span>
 							)}
-							<span className="text-zinc-400">{formattedJson.length} / {minifiedJson.length} chars</span>
+							<span className="tabular-nums text-zinc-400">{formattedJson.length} / {minifiedJson.length} chars</span>
 						</>
 					) : (
 						<span className="text-red-600">Invalid JSON: {parseResult.error}</span>
@@ -323,46 +319,51 @@ export default function JsonToolComponent() {
 				</div>
 			)}
 
-			{/* Main content */}
-			<div className="flex flex-col md:flex-row gap-4 flex-1">
-				{/* Input */}
-				<div className="flex-1 flex flex-col gap-2">
-					<label className="text-sm font-medium text-zinc-700">Input</label>
-					<textarea
-						value={input}
-						onChange={(e) => setInput(e.target.value)}
-						placeholder="Paste your JSON here..."
-						spellCheck={false}
-						className={`w-full h-[40vh] md:h-[60vh] p-3 border rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 ${
-							input.trim() && !parseResult.valid
-								? 'border-red-300 focus:ring-red-300 bg-red-50'
-								: 'border-zinc-300 focus:ring-zinc-400'
-						}`}
-					/>
+			<div className="flex flex-1 flex-col gap-6 md:flex-row md:gap-8">
+				<div className="flex-1">
+					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="rounded-[20px] bg-zinc-50 p-4">
+							<label className="mb-2 block text-sm font-medium text-zinc-700">Input</label>
+							<textarea
+								value={input}
+								onChange={(e) => setInput(e.target.value)}
+								placeholder="Paste your JSON here..."
+								spellCheck={false}
+								className={`h-[40vh] w-full resize-none rounded-[20px] p-3 font-mono text-sm text-zinc-700 transition-[box-shadow] duration-200 ease-out focus:outline-none md:h-[60vh] ${
+									input.trim() && !parseResult.valid
+										? 'bg-red-50 shadow-[0px_0px_0px_1px_rgba(248,113,113,0.45),0px_0px_0px_4px_rgba(254,226,226,0.8)]'
+										: 'bg-white shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]'
+								}`}
+							/>
+						</div>
+					</div>
 				</div>
 
-				{/* Output */}
-				<div className="flex-1 flex flex-col gap-2">
-					<label className="text-sm font-medium text-zinc-700">
-						Output ({viewMode === 'tree' ? 'Tree View' : viewMode === 'minified' ? 'Minified' : 'Formatted'})
-					</label>
-					{viewMode === 'tree' ? (
-						<div className="w-full h-[40vh] md:h-[60vh] p-3 border border-zinc-300 rounded-sm font-mono text-sm overflow-auto bg-white">
-							{parseResult.valid && parseResult.data !== null ? (
-								<JsonNode data={parseResult.data} />
+				<div className="flex-1">
+					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="rounded-[20px] bg-zinc-50 p-4">
+							<label className="mb-2 block text-sm font-medium text-zinc-700">
+								Output ({viewMode === 'tree' ? 'Tree View' : viewMode === 'minified' ? 'Minified' : 'Formatted'})
+							</label>
+							{viewMode === 'tree' ? (
+								<div className="h-[40vh] w-full overflow-auto rounded-[20px] bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] md:h-[60vh]">
+									{parseResult.valid && parseResult.data !== null ? (
+										<JsonNode data={parseResult.data} />
+									) : (
+										<span className="text-zinc-400">Enter valid JSON to see tree view</span>
+									)}
+								</div>
 							) : (
-								<span className="text-zinc-400">Enter valid JSON to see tree view</span>
+								<textarea
+									value={viewMode === 'minified' ? minifiedJson : formattedJson}
+									readOnly
+									placeholder="Output will appear here..."
+									spellCheck={false}
+									className="h-[40vh] w-full resize-none rounded-[20px] bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] focus:outline-none md:h-[60vh]"
+								/>
 							)}
 						</div>
-					) : (
-						<textarea
-							value={viewMode === 'minified' ? minifiedJson : formattedJson}
-							readOnly
-							placeholder="Output will appear here..."
-							spellCheck={false}
-							className="w-full h-[40vh] md:h-[60vh] p-3 border border-zinc-300 rounded-sm font-mono text-sm resize-none bg-zinc-50 focus:outline-none"
-						/>
-					)}
+					</div>
 				</div>
 			</div>
 		</div>

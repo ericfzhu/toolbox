@@ -86,115 +86,118 @@ export default function QrCodeComponent() {
 	useKeyboardShortcut({ key: 's', modifiers: ['ctrl'], callback: handleDownloadPng, disabled: !qrDataUrl });
 
 	return (
-		<div className="flex flex-col md:flex-row gap-6 md:gap-8 w-full max-w-4xl mx-auto">
-			{/* Controls */}
-			<div className="w-full md:w-72 flex-shrink-0 space-y-4 order-2 md:order-1">
-				<div className="space-y-2">
-					<label className="block text-sm font-medium text-zinc-700">Text or URL</label>
-					<textarea
-						value={text}
-						onChange={(e) => setText(e.target.value)}
-						placeholder="Enter text or URL..."
-						className="w-full h-24 md:h-32 p-3 border border-zinc-300 rounded-sm text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400"
-					/>
-				</div>
-
-				<div className="space-y-2">
-					<label className="block text-sm font-medium text-zinc-700">Size: {size}px</label>
-					<input
-						type="range"
-						value={size}
-						onChange={(e) => setSize(Number(e.target.value))}
-						min={128}
-						max={512}
-						step={32}
-						className="w-full accent-zinc-600"
-					/>
-				</div>
-
-				<div className="space-y-2">
-					<label className="block text-sm font-medium text-zinc-700">Error Correction</label>
-					<select
-						value={errorCorrection}
-						onChange={(e) => setErrorCorrection(e.target.value as ErrorCorrectionLevel)}
-						className="w-full p-2 border border-zinc-300 rounded-sm text-sm">
-						<option value="L">Low (~7%)</option>
-						<option value="M">Medium (~15%)</option>
-						<option value="Q">Quartile (~25%)</option>
-						<option value="H">High (~30%)</option>
-					</select>
-					<p className="text-xs text-zinc-500">Higher correction allows more damage but creates denser codes</p>
-				</div>
-
-				<div className="space-y-3">
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-zinc-700">Foreground</label>
-						<div className="flex gap-2">
-							<input
-								type="color"
-								value={foregroundColor}
-								onChange={(e) => setForegroundColor(e.target.value)}
-								className="w-10 h-10 border border-zinc-300 rounded-sm cursor-pointer flex-shrink-0"
-							/>
-							<input
-								type="text"
-								value={foregroundColor}
-								onChange={(e) => setForegroundColor(e.target.value)}
-								className="flex-1 min-w-0 p-2 border border-zinc-300 rounded-sm text-sm font-mono"
+		<div className="flex w-full flex-col gap-6 lg:flex-row lg:gap-8">
+			<div className="w-full max-w-sm shrink-0 space-y-4 lg:w-80">
+				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="space-y-4 rounded-[20px] bg-zinc-50 p-4">
+						<div className="space-y-2">
+							<label className="block text-sm font-medium text-zinc-900">Text or URL</label>
+							<textarea
+								value={text}
+								onChange={(e) => setText(e.target.value)}
+								placeholder="Enter text or URL..."
+								className="h-28 w-full resize-none rounded-[20px] bg-white p-3 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
 							/>
 						</div>
-					</div>
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-zinc-700">Background</label>
-						<div className="flex gap-2">
+
+						<div className="space-y-2">
+							<div className="flex items-center justify-between gap-4">
+								<label className="block text-sm font-medium text-zinc-900">Size</label>
+								<span className="tabular-nums text-sm text-zinc-500">{size}px</span>
+							</div>
 							<input
-								type="color"
-								value={backgroundColor}
-								onChange={(e) => setBackgroundColor(e.target.value)}
-								className="w-10 h-10 border border-zinc-300 rounded-sm cursor-pointer flex-shrink-0"
-							/>
-							<input
-								type="text"
-								value={backgroundColor}
-								onChange={(e) => setBackgroundColor(e.target.value)}
-								className="flex-1 min-w-0 p-2 border border-zinc-300 rounded-sm text-sm font-mono"
+								type="range"
+								value={size}
+								onChange={(e) => setSize(Number(e.target.value))}
+								min={128}
+								max={512}
+								step={32}
+								className="w-full accent-zinc-900"
 							/>
 						</div>
+
+						<div className="space-y-2">
+							<label className="block text-sm font-medium text-zinc-900">Error Correction</label>
+							<select
+								value={errorCorrection}
+								onChange={(e) => setErrorCorrection(e.target.value as ErrorCorrectionLevel)}
+								className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
+								<option value="L">Low (~7%)</option>
+								<option value="M">Medium (~15%)</option>
+								<option value="Q">Quartile (~25%)</option>
+								<option value="H">High (~30%)</option>
+							</select>
+							<p className="text-xs leading-5 text-zinc-500">Higher correction allows more damage but creates denser codes</p>
+						</div>
+
+						<div className="space-y-3">
+							<div className="space-y-2">
+								<label className="block text-sm font-medium text-zinc-900">Foreground</label>
+								<div className="flex gap-2">
+									<input
+										type="color"
+										value={foregroundColor}
+										onChange={(e) => setForegroundColor(e.target.value)}
+										className="h-11 w-11 shrink-0 cursor-pointer rounded-2xl bg-white p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]"
+									/>
+									<input
+										type="text"
+										value={foregroundColor}
+										onChange={(e) => setForegroundColor(e.target.value)}
+										className="min-h-11 min-w-0 flex-1 rounded-2xl bg-white px-3 py-2 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
+									/>
+								</div>
+							</div>
+							<div className="space-y-2">
+								<label className="block text-sm font-medium text-zinc-900">Background</label>
+								<div className="flex gap-2">
+									<input
+										type="color"
+										value={backgroundColor}
+										onChange={(e) => setBackgroundColor(e.target.value)}
+										className="h-11 w-11 shrink-0 cursor-pointer rounded-2xl bg-white p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]"
+									/>
+									<input
+										type="text"
+										value={backgroundColor}
+										onChange={(e) => setBackgroundColor(e.target.value)}
+										className="min-h-11 min-w-0 flex-1 rounded-2xl bg-white px-3 py-2 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
+									/>
+								</div>
+							</div>
+						</div>
+
+						{qrDataUrl && (
+							<div className="grid gap-2 border-t border-zinc-200 pt-4">
+								<button
+									onClick={() => handleDownload('png')}
+									className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+									<IconDownload size={18} />
+									<span>Download PNG</span>
+									<span className="ml-1 text-xs text-zinc-400">⌘S</span>
+								</button>
+								<button
+									onClick={() => handleDownload('svg')}
+									className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96]">
+									<IconDownload size={18} />
+									<span>Download SVG</span>
+								</button>
+							</div>
+						)}
 					</div>
 				</div>
-
-				{qrDataUrl && (
-					<div className="space-y-2 pt-4 border-t border-zinc-200">
-						<button
-							onClick={() => handleDownload('png')}
-							className="w-full bg-zinc-600 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2 transition-colors">
-							<IconDownload size={18} />
-							<span>Download PNG</span>
-							<span className="text-xs text-zinc-400 ml-1">⌘S</span>
-						</button>
-						<button
-							onClick={() => handleDownload('svg')}
-							className="w-full bg-zinc-200 hover:bg-zinc-300 p-2 rounded-sm flex items-center justify-center gap-2 transition-colors">
-							<IconDownload size={18} />
-							<span>Download SVG</span>
-						</button>
-					</div>
-				)}
 			</div>
 
-			{/* Preview */}
-			<div className="flex-1 min-w-0 flex items-center justify-center overflow-hidden order-1 md:order-2">
+			<div className="flex min-h-[24rem] min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 				{error ? (
-					<div className="text-red-600 text-sm">{error}</div>
+					<div className="rounded-[24px] bg-red-50 px-5 py-4 text-center text-sm text-red-600 shadow-[0px_0px_0px_1px_rgba(220,38,38,0.16)]">{error}</div>
 				) : qrDataUrl ? (
-					<div
-						className="border border-zinc-200 rounded-sm p-4"
-						style={{ backgroundColor: backgroundColor }}>
+					<div className="rounded-[24px] p-5 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1),0px_12px_30px_rgba(0,0,0,0.08)]" style={{ backgroundColor: backgroundColor }}>
 						{/* eslint-disable-next-line @next/next/no-img-element */}
-						<img src={qrDataUrl} alt="QR Code" width={size} height={size} className="max-w-full h-auto" style={{ maxWidth: `${size}px` }} />
+						<img src={qrDataUrl} alt="QR Code" width={size} height={size} className="h-auto max-w-full outline outline-1 -outline-offset-1 outline-black/10" style={{ maxWidth: `${size}px` }} />
 					</div>
 				) : (
-					<div className="border-2 border-dashed border-zinc-300 rounded-sm p-8 sm:p-16 text-zinc-400 text-center text-sm sm:text-base">
+					<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-sm text-zinc-500 sm:text-base">
 						<p>Enter text or URL to generate QR code</p>
 					</div>
 				)}

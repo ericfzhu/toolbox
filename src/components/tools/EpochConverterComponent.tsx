@@ -136,56 +136,55 @@ export default function EpochConverterComponent() {
 	};
 
 	return (
-		<div className="flex flex-col gap-6 md:gap-8 w-full max-w-4xl mx-auto">
+		<div className="flex w-full max-w-5xl flex-col gap-6 md:gap-8">
 			{/* Current Time Display */}
-			<div className="bg-zinc-100 rounded-sm p-4 text-center">
-				<div className="text-sm text-zinc-500 mb-1">Current Unix Timestamp</div>
+			<div className="rounded-[28px] bg-white p-2 text-center shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+				<div className="rounded-[20px] bg-zinc-50 p-4">
+				<div className="mb-1 text-sm text-zinc-500">Current Unix Timestamp</div>
 				<div className="flex items-center justify-center gap-2">
-					<span className="text-2xl md:text-3xl font-mono font-medium">
+					<span className="font-mono text-2xl font-medium tabular-nums md:text-3xl">
 						{formatNumber(currentEpoch)}
 					</span>
 					<button
 						onClick={() => copy(currentEpoch.toString())}
-						className="p-1 hover:bg-zinc-200 rounded-sm transition-colors"
+						className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-xl text-zinc-500 transition-[transform,background-color,color] duration-200 ease-out hover:bg-white hover:text-zinc-900 active:scale-[0.96]"
 						title="Copy to clipboard">
 						<IconCopy size={18} className="text-zinc-500" />
 					</button>
 				</div>
-				<div className="text-xs text-zinc-400 mt-1">seconds since Jan 1, 1970 UTC</div>
+				<div className="mt-1 text-xs text-zinc-400">seconds since Jan 1, 1970 UTC</div>
+				</div>
 			</div>
 
 			{/* Settings */}
-			<div className="flex flex-wrap gap-4 justify-center">
+			<div className="flex flex-wrap justify-center gap-3 rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 				<div className="flex items-center gap-2">
 					<label className="text-sm text-zinc-700">Unit:</label>
 					<select
 						value={timestampUnit}
 						onChange={(e) => setTimestampUnit(e.target.value as TimestampUnit)}
-						className="p-2 border border-zinc-300 rounded-sm text-sm">
+						className="min-h-11 rounded-2xl bg-zinc-50 px-3 py-2 pr-10 text-sm text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
 						<option value="seconds">Seconds</option>
 						<option value="milliseconds">Milliseconds</option>
 					</select>
 				</div>
-				<div className="flex items-center gap-2">
+				<label className="flex min-h-11 items-center gap-3 rounded-2xl bg-zinc-50 px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 					<input
 						type="checkbox"
 						id="useLocalTime"
 						checked={useLocalTime}
 						onChange={(e) => setUseLocalTime(e.target.checked)}
-						className="w-4 h-4 accent-zinc-600"
+						className="h-4 w-4 accent-zinc-900"
 					/>
-					<label htmlFor="useLocalTime" className="text-sm text-zinc-700">
-						Use local timezone
-					</label>
-				</div>
+					<span>Use local timezone</span>
+				</label>
 			</div>
 
-			<div className="flex flex-col md:flex-row gap-6 md:gap-8">
+			<div className="flex flex-col gap-6 md:flex-row md:gap-8">
 				{/* Epoch to Date */}
-				<div className="flex-1 space-y-4">
-					<h2 className="text-lg font-medium text-zinc-800 border-b border-zinc-200 pb-2">
-						Timestamp → Date
-					</h2>
+				<div className="flex-1 rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="space-y-4 rounded-[20px] bg-zinc-50 p-4">
+					<h2 className="text-lg font-medium text-zinc-800">Timestamp → Date</h2>
 
 					<div className="space-y-2">
 						<div className="flex gap-2">
@@ -194,11 +193,11 @@ export default function EpochConverterComponent() {
 								value={epochInput}
 								onChange={(e) => setEpochInput(e.target.value)}
 								placeholder={timestampUnit === 'seconds' ? '1704067200' : '1704067200000'}
-								className="flex-1 p-3 border border-zinc-300 rounded-sm text-sm font-mono focus:outline-none focus:ring-2 focus:ring-zinc-400"
+								className="min-h-11 min-w-0 flex-1 rounded-2xl bg-white px-3 py-2 font-mono text-sm tabular-nums text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
 							/>
 							<button
 								onClick={handleUseCurrentEpoch}
-								className="px-3 bg-zinc-200 hover:bg-zinc-300 rounded-sm transition-colors"
+								className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 hover:text-zinc-900 active:scale-[0.96]"
 								title="Use current timestamp">
 								<IconRefresh size={18} />
 							</button>
@@ -206,33 +205,33 @@ export default function EpochConverterComponent() {
 					</div>
 
 					{epochError ? (
-						<div className="p-3 bg-red-50 border border-red-200 rounded-sm text-red-600 text-sm">
+						<div className="rounded-2xl bg-red-50 p-3 text-sm text-red-600 shadow-[0px_0px_0px_1px_rgba(220,38,38,0.16)]">
 							{epochError}
 						</div>
 					) : convertedDate ? (
-						<div className="p-3 bg-zinc-50 border border-zinc-200 rounded-sm">
+						<div className="rounded-2xl bg-white p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 							<div className="flex items-start justify-between gap-2">
 								<span className="text-sm">{convertedDate}</span>
 								<button
 									onClick={() => copy(convertedDate)}
-									className="p-1 hover:bg-zinc-200 rounded-sm transition-colors flex-shrink-0"
+									className="inline-flex min-h-10 min-w-10 flex-shrink-0 items-center justify-center rounded-xl text-zinc-500 transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 hover:text-zinc-900 active:scale-[0.96]"
 									title="Copy to clipboard">
 									<IconCopy size={16} className="text-zinc-500" />
 								</button>
 							</div>
 						</div>
 					) : (
-						<div className="p-3 border-2 border-dashed border-zinc-200 rounded-sm text-zinc-400 text-sm text-center">
+						<div className="rounded-2xl border border-dashed border-zinc-300 bg-white/70 p-3 text-center text-sm text-zinc-400">
 							Enter a timestamp to convert
 						</div>
 					)}
+					</div>
 				</div>
 
 				{/* Date to Epoch */}
-				<div className="flex-1 space-y-4">
-					<h2 className="text-lg font-medium text-zinc-800 border-b border-zinc-200 pb-2">
-						Date → Timestamp
-					</h2>
+				<div className="flex-1 rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="space-y-4 rounded-[20px] bg-zinc-50 p-4">
+					<h2 className="text-lg font-medium text-zinc-800">Date → Timestamp</h2>
 
 					<div className="space-y-2">
 						<div className="flex gap-2">
@@ -240,11 +239,11 @@ export default function EpochConverterComponent() {
 								type="date"
 								value={dateInput}
 								onChange={(e) => setDateInput(e.target.value)}
-								className="flex-1 p-3 border border-zinc-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
+								className="min-h-11 min-w-0 flex-1 rounded-2xl bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
 							/>
 							<button
 								onClick={handleUseCurrentDate}
-								className="px-3 bg-zinc-200 hover:bg-zinc-300 rounded-sm transition-colors"
+								className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 hover:text-zinc-900 active:scale-[0.96]"
 								title="Use current date/time">
 								<IconRefresh size={18} />
 							</button>
@@ -254,62 +253,65 @@ export default function EpochConverterComponent() {
 							value={timeInput}
 							onChange={(e) => setTimeInput(e.target.value)}
 							step="1"
-							className="w-full p-3 border border-zinc-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400"
+							className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
 						/>
 					</div>
 
 					{dateError ? (
-						<div className="p-3 bg-red-50 border border-red-200 rounded-sm text-red-600 text-sm">
+						<div className="rounded-2xl bg-red-50 p-3 text-sm text-red-600 shadow-[0px_0px_0px_1px_rgba(220,38,38,0.16)]">
 							{dateError}
 						</div>
 					) : convertedEpoch !== null ? (
-						<div className="p-3 bg-zinc-50 border border-zinc-200 rounded-sm">
+						<div className="rounded-2xl bg-white p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 							<div className="flex items-center justify-between gap-2">
-								<span className="text-sm font-mono">{formatNumber(convertedEpoch)}</span>
+								<span className="font-mono text-sm tabular-nums">{formatNumber(convertedEpoch)}</span>
 								<button
 									onClick={() => copy(convertedEpoch.toString())}
-									className="p-1 hover:bg-zinc-200 rounded-sm transition-colors flex-shrink-0"
+									className="inline-flex min-h-10 min-w-10 flex-shrink-0 items-center justify-center rounded-xl text-zinc-500 transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 hover:text-zinc-900 active:scale-[0.96]"
 									title="Copy to clipboard">
 									<IconCopy size={16} className="text-zinc-500" />
 								</button>
 							</div>
 						</div>
 					) : (
-						<div className="p-3 border-2 border-dashed border-zinc-200 rounded-sm text-zinc-400 text-sm text-center">
+						<div className="rounded-2xl border border-dashed border-zinc-300 bg-white/70 p-3 text-center text-sm text-zinc-400">
 							Select a date to convert
 						</div>
 					)}
+					</div>
 				</div>
 			</div>
 
 			{/* Quick Reference */}
-			<div className="bg-zinc-50 rounded-sm p-4 space-y-2">
+			<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+				<div className="space-y-2 rounded-[20px] bg-zinc-50 p-4">
 				<h3 className="text-sm font-medium text-zinc-700">Quick Reference</h3>
-				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs text-zinc-600">
+				<div className="grid grid-cols-1 gap-2 text-xs text-zinc-600 sm:grid-cols-2 md:grid-cols-3">
 					<div className="flex justify-between">
 						<span>1 minute</span>
-						<span className="font-mono">60</span>
+						<span className="font-mono tabular-nums">60</span>
 					</div>
 					<div className="flex justify-between">
 						<span>1 hour</span>
-						<span className="font-mono">3,600</span>
+						<span className="font-mono tabular-nums">3,600</span>
 					</div>
 					<div className="flex justify-between">
 						<span>1 day</span>
-						<span className="font-mono">86,400</span>
+						<span className="font-mono tabular-nums">86,400</span>
 					</div>
 					<div className="flex justify-between">
 						<span>1 week</span>
-						<span className="font-mono">604,800</span>
+						<span className="font-mono tabular-nums">604,800</span>
 					</div>
 					<div className="flex justify-between">
 						<span>30 days</span>
-						<span className="font-mono">2,592,000</span>
+						<span className="font-mono tabular-nums">2,592,000</span>
 					</div>
 					<div className="flex justify-between">
 						<span>1 year</span>
-						<span className="font-mono">31,536,000</span>
+						<span className="font-mono tabular-nums">31,536,000</span>
 					</div>
+				</div>
 				</div>
 			</div>
 		</div>

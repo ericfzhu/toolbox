@@ -326,13 +326,13 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 	return (
 		<div
 			ref={minimapRef}
-			className="w-20 bg-zinc-100 border-l border-zinc-300 relative cursor-pointer select-none flex-shrink-0 flex flex-col"
+			className="relative flex w-20 flex-shrink-0 cursor-pointer select-none flex-col bg-zinc-50 shadow-[inset_1px_0px_0px_rgba(0,0,0,0.08)]"
 			onMouseDown={handleMouseDown}
 		>
 			{/* Header spacer to align with content area */}
 			{headerHeight > 0 && (
 				<div
-					className="flex-shrink-0 border-b border-zinc-300 bg-zinc-100"
+					className="flex-shrink-0 bg-zinc-50 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]"
 					style={{ height: `${headerHeight}px` }}
 				/>
 			)}
@@ -359,7 +359,7 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 				</div>
 
 				{/* Divider */}
-				<div className="w-px bg-zinc-300" />
+				<div className="w-px bg-zinc-300/80" />
 
 				{/* Right column - additions (modified side) */}
 				<div className="flex-1 relative">
@@ -382,7 +382,7 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 
 				{/* Viewport indicator - spans both columns */}
 				<div
-					className="absolute left-0 right-0 bg-zinc-500/20 border-y border-zinc-400 pointer-events-none"
+					className="pointer-events-none absolute left-0 right-0 bg-zinc-900/15 shadow-[inset_0px_1px_0px_rgba(24,24,27,0.35),inset_0px_-1px_0px_rgba(24,24,27,0.35)]"
 					style={{
 						top: `${viewportTop}%`,
 						height: `${Math.max(viewportHeight, 2)}%`,
@@ -461,58 +461,66 @@ export default function DiffCheckerComponent() {
 	const deletions = diffResult.filter((d) => d.type === 'removed').length;
 
 	return (
-		<div className="flex flex-col gap-4 w-full">
+		<div className="flex w-full flex-col gap-5">
 			<style dangerouslySetInnerHTML={{ __html: highlightStyles }} />
 			{/* Input Section */}
 			{!showDiff && (
-				<div className="flex flex-col md:flex-row gap-4 w-full">
-					<div className="flex-1 flex flex-col gap-2">
-						<label className="text-sm font-medium text-zinc-700">Original Text</label>
-						<textarea
-							value={oldText}
-							onChange={(e) => setOldText(e.target.value)}
-							placeholder="Paste original text here..."
-							className="w-full h-48 md:h-80 p-3 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400"
-						/>
+				<div className="flex w-full flex-col gap-6 md:flex-row md:gap-8">
+					<div className="flex-1">
+						<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+							<div className="rounded-[20px] bg-zinc-50 p-4">
+								<label className="mb-2 block text-sm font-medium text-zinc-700">Original Text</label>
+								<textarea
+									value={oldText}
+									onChange={(e) => setOldText(e.target.value)}
+									placeholder="Paste original text here..."
+									className="h-48 w-full resize-none rounded-[20px] bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] md:h-80"
+								/>
+							</div>
+						</div>
 					</div>
-					<div className="flex-1 flex flex-col gap-2">
-						<label className="text-sm font-medium text-zinc-700">Modified Text</label>
-						<textarea
-							value={newText}
-							onChange={(e) => setNewText(e.target.value)}
-							placeholder="Paste modified text here..."
-							className="w-full h-48 md:h-80 p-3 border border-zinc-300 rounded-sm font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zinc-400"
-						/>
+					<div className="flex-1">
+						<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+							<div className="rounded-[20px] bg-zinc-50 p-4">
+								<label className="mb-2 block text-sm font-medium text-zinc-700">Modified Text</label>
+								<textarea
+									value={newText}
+									onChange={(e) => setNewText(e.target.value)}
+									placeholder="Paste modified text here..."
+									className="h-48 w-full resize-none rounded-[20px] bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] md:h-80"
+								/>
+							</div>
+						</div>
 					</div>
 				</div>
 			)}
 
 			{/* Controls */}
-			<div className="flex flex-wrap gap-2 items-center">
+			<div className="flex flex-wrap items-center gap-2 rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 				{!showDiff ? (
 					<button
 						onClick={handleCompare}
 						disabled={!oldText && !newText}
-						className="bg-zinc-700 hover:bg-zinc-800 disabled:bg-zinc-300 text-white px-4 py-2 rounded-sm transition-colors">
+						className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none">
 						Compare
 					</button>
 				) : (
 					<>
-						<button onClick={() => setShowDiff(false)} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
+						<button onClick={() => setShowDiff(false)} className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 							Edit
 						</button>
-						<button onClick={handleCopyDiff} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
+						<button onClick={handleCopyDiff} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 							<IconCopy size={16} />
 							<span className="hidden sm:inline">Copy Diff</span>
 							<span className="sm:hidden">Copy</span>
 						</button>
-						<button onClick={handleClear} className="bg-zinc-200 hover:bg-zinc-300 px-3 sm:px-4 py-2 rounded-sm transition-colors text-sm sm:text-base">
+						<button onClick={handleClear} className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 							Clear
 						</button>
 						<select
 							value={language}
 							onChange={(e) => setLanguage(e.target.value as Language)}
-							className="bg-zinc-200 hover:bg-zinc-300 px-2 sm:px-4 h-10 rounded-sm transition-colors border-none cursor-pointer text-sm sm:text-base"
+							className="min-h-11 cursor-pointer rounded-2xl border-none bg-zinc-50 px-3 py-2 pr-10 text-sm text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow,background-color] duration-200 ease-out hover:bg-zinc-100 focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:px-4"
 						>
 							{LANGUAGES.map((lang) => (
 								<option key={lang.value} value={lang.value}>
@@ -524,19 +532,19 @@ export default function DiffCheckerComponent() {
 							))}
 						</select>
 						<div className="hidden sm:block flex-1" />
-						<div className="flex border border-zinc-300 rounded-sm overflow-hidden">
+						<div className="flex rounded-2xl bg-zinc-50 p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 							<button
 								onClick={() => setViewMode('split')}
-								className={`px-3 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'split' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+								className={`min-h-9 rounded-xl px-3 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-4 ${viewMode === 'split' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 								Split
 							</button>
 							<button
 								onClick={() => setViewMode('unified')}
-								className={`px-3 sm:px-4 py-2 text-sm sm:text-base ${viewMode === 'unified' ? 'bg-zinc-200' : 'hover:bg-zinc-100'}`}>
+								className={`min-h-9 rounded-xl px-3 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-4 ${viewMode === 'unified' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 								Unified
 							</button>
 						</div>
-						<div className="text-sm text-zinc-600">
+						<div className="rounded-2xl bg-zinc-50 px-3 py-2 text-sm tabular-nums text-zinc-600 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 							<span className="text-green-600">+{additions}</span> <span className="text-red-600">-{deletions}</span>
 						</div>
 					</>
@@ -545,17 +553,17 @@ export default function DiffCheckerComponent() {
 
 			{/* Diff Result */}
 			{showDiff && diffResult.length > 0 && (
-				<div className="border border-zinc-300 rounded-sm overflow-hidden flex">
+				<div className="flex overflow-hidden rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 					<div className="flex-1 min-w-0 overflow-x-auto">
 						{viewMode === 'split' ? (
-							<div className="flex min-w-[600px] md:min-w-0">
+							<div className="flex min-w-[600px] overflow-hidden rounded-[20px] bg-white md:min-w-0">
 								{/* Old side */}
-								<div className="flex-1 border-r border-zinc-300 min-w-0">
-									<div className="bg-zinc-100 px-3 py-1 text-sm font-medium border-b border-zinc-300 text-red-700">Original</div>
+								<div className="min-w-0 flex-1 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
+									<div className="bg-zinc-50 px-3 py-2 text-sm font-medium text-red-700 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]">Original</div>
 									<div
 										ref={leftScrollRef}
 										onScroll={handleLeftScroll}
-										className="font-mono text-sm overflow-auto max-h-[60vh] hljs"
+										className="hljs max-h-[60vh] overflow-auto font-mono text-sm"
 									>
 										{highlightedLines.map((line, idx) => {
 											if (line.type === 'added') return null;
@@ -565,7 +573,7 @@ export default function DiffCheckerComponent() {
 													className={`flex ${
 														line.type === 'removed' ? 'bg-red-100' : ''
 													}`}>
-													<span className="w-12 px-2 py-0.5 text-right text-zinc-400 bg-zinc-50 border-r border-zinc-200 select-none flex-shrink-0">
+													<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 														{line.oldLineNum || ''}
 													</span>
 													<span className="w-6 px-1 py-0.5 text-center text-zinc-400 select-none flex-shrink-0">
@@ -581,12 +589,12 @@ export default function DiffCheckerComponent() {
 									</div>
 								</div>
 								{/* New side */}
-								<div className="flex-1 min-w-0">
-									<div className="bg-zinc-100 px-3 py-1 text-sm font-medium border-b border-zinc-300 text-green-700">Modified</div>
+								<div className="min-w-0 flex-1">
+									<div className="bg-zinc-50 px-3 py-2 text-sm font-medium text-green-700 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]">Modified</div>
 									<div
 										ref={rightScrollRef}
 										onScroll={handleRightScroll}
-										className="font-mono text-sm overflow-auto max-h-[60vh] hljs"
+										className="hljs max-h-[60vh] overflow-auto font-mono text-sm"
 									>
 										{highlightedLines.map((line, idx) => {
 											if (line.type === 'removed') return null;
@@ -596,7 +604,7 @@ export default function DiffCheckerComponent() {
 													className={`flex ${
 														line.type === 'added' ? 'bg-green-100' : ''
 													}`}>
-													<span className="w-12 px-2 py-0.5 text-right text-zinc-400 bg-zinc-50 border-r border-zinc-200 select-none flex-shrink-0">
+													<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 														{line.newLineNum || ''}
 													</span>
 													<span className="w-6 px-1 py-0.5 text-center text-zinc-400 select-none flex-shrink-0">
@@ -615,7 +623,7 @@ export default function DiffCheckerComponent() {
 						) : (
 							<div
 								ref={unifiedScrollRef}
-								className="font-mono text-sm overflow-auto max-h-[70vh] hljs"
+								className="hljs max-h-[70vh] overflow-auto rounded-[20px] bg-white font-mono text-sm"
 							>
 								{highlightedLines.map((line, idx) => (
 									<div
@@ -627,10 +635,10 @@ export default function DiffCheckerComponent() {
 													? 'bg-red-100'
 													: ''
 										}`}>
-										<span className="w-12 px-2 py-0.5 text-right text-zinc-400 bg-zinc-50 border-r border-zinc-200 select-none flex-shrink-0">
+										<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 											{line.oldLineNum || ''}
 										</span>
-										<span className="w-12 px-2 py-0.5 text-right text-zinc-400 bg-zinc-50 border-r border-zinc-200 select-none flex-shrink-0">
+										<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 											{line.newLineNum || ''}
 										</span>
 										<span
@@ -667,7 +675,9 @@ export default function DiffCheckerComponent() {
 
 			{/* Empty state */}
 			{showDiff && diffResult.length === 0 && (
-				<div className="border border-zinc-300 rounded-sm p-8 text-center text-zinc-500">No differences found. The texts are identical.</div>
+				<div className="rounded-[28px] bg-white p-2 text-center text-zinc-500 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="rounded-[20px] bg-zinc-50 px-6 py-8">No differences found. The texts are identical.</div>
+				</div>
 			)}
 		</div>
 	);
