@@ -296,65 +296,64 @@ export default function GaussianBlurComponent(): JSX.Element {
 				blurredImage &&
 				imageDimensions && (
 					<div className="flex-1 flex flex-col items-center">
-						<div
-							className="relative overflow-hidden rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]"
-							ref={compareContainerRef}
-							style={{
-								width: imageDimensions.width >= imageDimensions.height ? '100%' : 'auto',
-								height: imageDimensions.height > imageDimensions.width ? '100%' : 'auto',
-								maxWidth: '100%',
-								maxHeight: '70vh',
-								aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
-							}}>
-							<div className="pointer-events-none absolute left-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-								Original
-							</div>
-							<div className="pointer-events-none absolute right-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-								Blurred
-							</div>
-							<Image
-								src={originalImage}
-								alt="Original"
-								className="absolute top-3 left-3 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
-								style={{
-									clipPath: `inset(0 ${100 - comparePosition}% 0 0)`,
-								}}
-								fill
-								sizes="70vw"
-								unoptimized
-							/>
-							<Image
-								src={blurredImage}
-								alt="Blurred"
-								className="absolute top-3 left-3 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
-								style={{
-									clipPath: `inset(0 0 0 ${comparePosition}%)`,
-								}}
-								fill
-								sizes="70vw"
-								unoptimized
-							/>
+						<div className="flex h-[70vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 							<div
-								ref={sliderRef}
-								className="group absolute top-3 z-20"
+								className="relative w-full overflow-hidden rounded-[24px]"
+								ref={compareContainerRef}
 								style={{
-									left: `${comparePosition}%`,
-									height: 'calc(100% - 24px)',
-									width: '40px',
-									transform: 'translateX(-20px)',
-									cursor: 'ew-resize',
-								}}
-								onMouseDown={handleCompareSliderDrag}>
-								<div className="relative mx-auto h-full w-1 rounded-full bg-white/95 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_4px_10px_rgba(0,0,0,0.18)] transition-[background-color,box-shadow] duration-200 ease-out group-hover:bg-white" />
-								<div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_8px_20px_rgba(0,0,0,0.14)] transition-[transform,box-shadow] duration-200 ease-out group-hover:scale-105 group-active:scale-[0.96]">
-									<>
-										<span className="-mr-0.5">L</span>
-										<span className="-ml-0.5">R</span>
-									</>
+									aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
+									maxWidth: `min(100%, calc((70vh - 24px) * ${imageDimensions.width / imageDimensions.height}))`,
+									maxHeight: 'calc(70vh - 24px)',
+								}}>
+								<div className="pointer-events-none absolute left-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+									Original
 								</div>
-							</div>
-							<div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white tabular-nums backdrop-blur-sm">
-								{Math.round(comparePosition)}%
+								<div className="pointer-events-none absolute right-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+									Blurred
+								</div>
+								<Image
+									src={originalImage}
+									alt="Original"
+									className="absolute inset-0 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
+									style={{
+										clipPath: `inset(0 ${100 - comparePosition}% 0 0)`,
+									}}
+									fill
+									sizes="100vw"
+									unoptimized
+								/>
+								<Image
+									src={blurredImage}
+									alt="Blurred"
+									className="absolute inset-0 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
+									style={{
+										clipPath: `inset(0 0 0 ${comparePosition}%)`,
+									}}
+									fill
+									sizes="100vw"
+									unoptimized
+								/>
+								<div
+									ref={sliderRef}
+									className="group absolute inset-y-0 z-20"
+									style={{
+										left: `${comparePosition}%`,
+										width: '40px',
+										transform: 'translateX(-20px)',
+										cursor: 'ew-resize',
+									}}
+									onMouseDown={handleCompareSliderDrag}>
+									<div className="relative mx-auto h-full w-1 rounded-full bg-white/95 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_4px_10px_rgba(0,0,0,0.18)] transition-[background-color,box-shadow] duration-200 ease-out group-hover:bg-white" />
+									<div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_8px_20px_rgba(0,0,0,0.14)] transition-[transform,box-shadow] duration-200 ease-out group-hover:scale-105 group-active:scale-[0.96]">
+										<>
+											<span className="-mr-0.5">L</span>
+											<span className="-ml-0.5">R</span>
+										</>
+									</div>
+								</div>
+								<div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white tabular-nums backdrop-blur-sm">
+									{Math.round(comparePosition)}%
+								</div>
 							</div>
 						</div>
 						{isProcessing && <p className="mt-3 text-sm text-zinc-500">Processing image...</p>}
