@@ -49,33 +49,35 @@ export default function SquareIconComponent() {
 	}
 
 	return (
-		<div className="flex items-center justify-center mt-20">
-			<div className="space-y-6 w-64">
-				<div className="space-y-2">
-					<input
-						type="text"
-						value={inputValue}
-						onChange={handleColorInputChange}
-						className="w-full p-2 border border-zinc-300 rounded-sm"
-						placeholder="Enter color (hex, rgb, hsl)"
-					/>
+		<div className="mt-12 flex items-center justify-center">
+			<div className="w-full max-w-sm space-y-5">
+				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="space-y-4 rounded-[20px] bg-zinc-50 p-4">
+						<input
+							type="text"
+							value={inputValue}
+							onChange={handleColorInputChange}
+							className="w-full rounded-2xl bg-white px-3 py-3 text-sm shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.28)]"
+							placeholder="Enter color (hex, rgb, hsl)"
+						/>
+					</div>
 				</div>
 
-				<div className="space-y-2">
-					<div className="relative w-64 h-64 border border-zinc-200 rounded-sm overflow-hidden">
+				<div className="rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="relative aspect-square overflow-hidden rounded-[24px] bg-white outline outline-1 -outline-offset-1 outline-black/10">
 						<input
 							ref={colorInputRef}
 							type="color"
 							value={color}
 							onChange={handleColorPickerChange}
-							className="absolute inset-0 w-full h-full cursor-pointer"
+							className="absolute inset-0 h-full w-full cursor-pointer"
 						/>
 					</div>
 				</div>
 
 				<button
 					onClick={downloadImage}
-					className="w-full bg-zinc-500 hover:bg-zinc-700 text-white font-bold p-2 rounded-sm flex items-center justify-center gap-2"
+					className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
 					aria-label="Download square icon">
 					<IconDownload size={20} />
 					<span>Download</span>

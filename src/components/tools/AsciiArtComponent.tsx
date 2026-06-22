@@ -535,12 +535,14 @@ export default function EnhancedAsciiArtComponent() {
 	}, [originalImage, imageDimensions, settings, generateAscii]);
 
 	return (
-		<div className="flex flex-col md:flex-row gap-4">
-			{/* Controls Sidebar */}
-			<div className="w-full md:w-64 space-y-4">
-				{/* File Upload */}
+		<div className="flex w-full min-h-0 flex-col gap-5 lg:h-[calc(100svh-18rem)] lg:flex-row lg:gap-6">
+			<div className="w-full max-w-md shrink-0 space-y-4 lg:h-full lg:w-96 lg:overflow-y-auto lg:pr-1">
 				<div
-					className={`border-2 border-dashed p-4 text-center ${dragState === 'upload' ? 'border-zinc-400 bg-zinc-50' : 'border-zinc-300'}`}
+					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
+						dragState === 'upload'
+							? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]'
+							: 'bg-white'
+					}`}
 					onDragOver={(e) => {
 						e.preventDefault();
 						setDragState('upload');
@@ -552,275 +554,308 @@ export default function EnhancedAsciiArtComponent() {
 						const file = e.dataTransfer.files[0];
 						if (file) handleFileUpload(file);
 					}}>
-					<input
-						type="file"
-						accept="image/*"
-						className="hidden"
-						ref={fileInputRef}
-						onChange={(e) => {
-							const file = e.target.files?.[0];
-							if (file) handleFileUpload(file);
-						}}
-					/>
-					<button onClick={() => fileInputRef.current?.click()} className="bg-zinc-200 hover:bg-zinc-300 py-2 px-4">
-						Select Image
-					</button>
-					<p className="mt-2 text-sm text-zinc-600">or drag and drop an image here</p>
+					<div
+						className={`rounded-[20px] border border-dashed px-5 py-5 text-center transition-[border-color,background-color] duration-200 ease-out ${
+							dragState === 'upload' ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
+						}`}>
+						<input
+							type="file"
+							accept="image/*"
+							className="hidden"
+							ref={fileInputRef}
+							onChange={(e) => {
+								const file = e.target.files?.[0];
+								if (file) handleFileUpload(file);
+							}}
+						/>
+						<button
+							onClick={() => fileInputRef.current?.click()}
+							className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+							Select Image
+						</button>
+						<p className="mt-3 text-sm text-zinc-500">or drag and drop an image here</p>
+					</div>
 				</div>
 
-				{/* Settings Controls */}
 				{imageDimensions && (
-					<div className="space-y-4">
-						{/* Width Control */}
-						<div className="space-y-2">
-							<label className="block text-sm">Width (chars): {settings.width}</label>
-							<input
-								type="range"
-								value={settings.width}
-								onChange={(e) => setSettings((s) => ({ ...s, width: parseInt(e.target.value) }))}
-								min="20"
-								max="300"
-								className="w-full accent-zinc-500"
-							/>
-						</div>
-
-						{/* Brightness */}
-						<div className="space-y-2">
-							<label className="block text-sm">Brightness: {settings.brightness}</label>
-							<input
-								type="range"
-								value={settings.brightness}
-								onChange={(e) => setSettings((s) => ({ ...s, brightness: parseInt(e.target.value) }))}
-								min="-100"
-								max="100"
-								className="w-full accent-zinc-500"
-							/>
-						</div>
-
-						{/* Contrast */}
-						<div className="space-y-2">
-							<label className="block text-sm">Contrast: {settings.contrast}</label>
-							<input
-								type="range"
-								value={settings.contrast}
-								onChange={(e) => setSettings((s) => ({ ...s, contrast: parseInt(e.target.value) }))}
-								min="-100"
-								max="100"
-								className="w-full accent-zinc-500"
-							/>
-						</div>
-
-						{/* Blur */}
-						<div className="space-y-2">
-							<label className="block text-sm">Blur: {settings.blur}px</label>
-							<input
-								type="range"
-								value={settings.blur}
-								onChange={(e) => setSettings((s) => ({ ...s, blur: parseFloat(e.target.value) }))}
-								min="0"
-								max="10"
-								step="0.1"
-								className="w-full accent-zinc-500"
-							/>
-						</div>
-
-						{/* Dithering Controls */}
-						<div className="space-y-2">
-							<div className="flex items-center">
-								<input
-									type="checkbox"
-									id="dithering"
-									checked={settings.isDithering}
-									onChange={(e) => setSettings((s) => ({ ...s, isDithering: e.target.checked }))}
-									className="mr-2"
-								/>
-								<label htmlFor="dithering" className="text-sm">
-									Enable Dithering
-								</label>
-							</div>
-
-							{settings.isDithering && (
-								<select
-									value={settings.ditherAlgorithm}
-									onChange={(e) => setSettings((s) => ({ ...s, ditherAlgorithm: e.target.value }))}
-									className="w-full p-1 border border-zinc-300 rounded-sm">
-									<option value="floyd">Floyd-Steinberg</option>
-									<option value="atkinson">Atkinson</option>
-								</select>
-							)}
-						</div>
-
-						{/* Edge Detection */}
-						<div className="space-y-2">
-							<label className="block text-sm">Edge Detection</label>
-							<select
-								value={settings.edgeMethod}
-								onChange={(e) => setSettings((s) => ({ ...s, edgeMethod: e.target.value }))}
-								className="w-full p-1 border border-zinc-300 rounded-sm">
-								<option value="none">None</option>
-								<option value="sobel">Sobel</option>
-								<option value="dog">DoG (Contour)</option>
-							</select>
-
-							{settings.edgeMethod !== 'none' && (
-								<div className="space-y-2">
-									<label className="block text-sm">
-										Threshold: {settings.edgeMethod === 'sobel' ? settings.edgeThreshold : settings.dogThreshold}
-									</label>
-									<input
-										type="range"
-										value={settings.edgeMethod === 'sobel' ? settings.edgeThreshold : settings.dogThreshold}
-										onChange={(e) =>
-											setSettings((s) => ({
-												...s,
-												[settings.edgeMethod === 'sobel' ? 'edgeThreshold' : 'dogThreshold']: parseInt(e.target.value),
-											}))
-										}
-										min="0"
-										max="255"
-										className="w-full accent-zinc-500"
-									/>
-								</div>
-							)}
-						</div>
-
-						{/* Character Set */}
-						<div className="space-y-2">
-							<label className="block text-sm">Character Set</label>
-							<select
-								value={settings.charSet}
-								onChange={(e) => setSettings((s) => ({ ...s, charSet: e.target.value }))}
-								className="w-full p-1 border border-zinc-300 rounded-sm">
-								<option value="detailed">Detailed</option>
-								<option value="standard">Standard</option>
-								<option value="blocks">Blocks</option>
-								<option value="binary">Binary</option>
-								<option value="hex">Hex</option>
-								<option value="manual">Manual</option>
-							</select>
-
-							{settings.charSet === 'manual' && (
-								<input
-									type="text"
-									maxLength={1}
-									value={settings.manualChar}
-									onChange={(e) => setSettings((s) => ({ ...s, manualChar: e.target.value }))}
-									className="w-full p-1 border border-zinc-300 rounded-sm"
-								/>
-							)}
-						</div>
-
-						{/* Color Toggle */}
-						<div className="flex space-x-2 mt-4">
-							<button
-								onClick={() => setSettings((s) => ({ ...s, isColor: true }))}
-								className={`flex-1 border p-2 rounded-sm ${
-									settings.isColor ? 'bg-zinc-200 border-zinc-400 hover:bg-zinc-300' : 'border-zinc-300 hover:bg-zinc-100'
-								}`}>
-								Color
-							</button>
-							<button
-								onClick={() => setSettings((s) => ({ ...s, isColor: false }))}
-								className={`flex-1 border p-2 rounded-sm ${
-									!settings.isColor ? 'bg-zinc-200 border-zinc-400 hover:bg-zinc-300' : 'border-zinc-300 hover:bg-zinc-100'
-								}`}>
-								B&W
-							</button>
-						</div>
-
-						{/* Download Buttons */}
-						{asciiData.length > 0 && (
+					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="space-y-4 rounded-[20px] bg-zinc-50 px-4 py-4">
 							<div className="space-y-2">
+								<div className="flex items-center justify-between gap-4">
+									<label className="block text-sm font-medium text-zinc-900">Width (chars)</label>
+									<span className="tabular-nums text-sm text-zinc-500">{settings.width}</span>
+								</div>
+								<input
+									type="range"
+									value={settings.width}
+									onChange={(e) => setSettings((s) => ({ ...s, width: parseInt(e.target.value) }))}
+									min="20"
+									max="300"
+									className="w-full accent-zinc-900"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<div className="flex items-center justify-between gap-4">
+									<label className="block text-sm font-medium text-zinc-900">Brightness</label>
+									<span className="tabular-nums text-sm text-zinc-500">{settings.brightness}</span>
+								</div>
+								<input
+									type="range"
+									value={settings.brightness}
+									onChange={(e) => setSettings((s) => ({ ...s, brightness: parseInt(e.target.value) }))}
+									min="-100"
+									max="100"
+									className="w-full accent-zinc-900"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<div className="flex items-center justify-between gap-4">
+									<label className="block text-sm font-medium text-zinc-900">Contrast</label>
+									<span className="tabular-nums text-sm text-zinc-500">{settings.contrast}</span>
+								</div>
+								<input
+									type="range"
+									value={settings.contrast}
+									onChange={(e) => setSettings((s) => ({ ...s, contrast: parseInt(e.target.value) }))}
+									min="-100"
+									max="100"
+									className="w-full accent-zinc-900"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<div className="flex items-center justify-between gap-4">
+									<label className="block text-sm font-medium text-zinc-900">Blur</label>
+									<span className="tabular-nums text-sm text-zinc-500">{settings.blur}px</span>
+								</div>
+								<input
+									type="range"
+									value={settings.blur}
+									onChange={(e) => setSettings((s) => ({ ...s, blur: parseFloat(e.target.value) }))}
+									min="0"
+									max="10"
+									step="0.1"
+									className="w-full accent-zinc-900"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<label className="flex min-h-11 items-center gap-3 rounded-2xl bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+									<input
+										type="checkbox"
+										id="dithering"
+										checked={settings.isDithering}
+										onChange={(e) => setSettings((s) => ({ ...s, isDithering: e.target.checked }))}
+										className="h-4 w-4 accent-zinc-900"
+									/>
+									<span>Enable Dithering</span>
+								</label>
+
+								{settings.isDithering && (
+									<select
+										value={settings.ditherAlgorithm}
+										onChange={(e) => setSettings((s) => ({ ...s, ditherAlgorithm: e.target.value }))}
+										className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
+										<option value="floyd">Floyd-Steinberg</option>
+										<option value="atkinson">Atkinson</option>
+									</select>
+								)}
+							</div>
+
+							<div className="space-y-2">
+								<label className="block text-sm font-medium text-zinc-900">Edge Detection</label>
+								<select
+									value={settings.edgeMethod}
+									onChange={(e) => setSettings((s) => ({ ...s, edgeMethod: e.target.value }))}
+									className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
+									<option value="none">None</option>
+									<option value="sobel">Sobel</option>
+									<option value="dog">DoG (Contour)</option>
+								</select>
+
+								{settings.edgeMethod !== 'none' && (
+									<div className="space-y-2">
+										<div className="flex items-center justify-between gap-4">
+											<label className="block text-sm text-zinc-700">Threshold</label>
+											<span className="tabular-nums text-sm text-zinc-500">
+												{settings.edgeMethod === 'sobel' ? settings.edgeThreshold : settings.dogThreshold}
+											</span>
+										</div>
+										<input
+											type="range"
+											value={settings.edgeMethod === 'sobel' ? settings.edgeThreshold : settings.dogThreshold}
+											onChange={(e) =>
+												setSettings((s) => ({
+													...s,
+													[settings.edgeMethod === 'sobel' ? 'edgeThreshold' : 'dogThreshold']: parseInt(e.target.value),
+												}))
+											}
+											min="0"
+											max="255"
+											className="w-full accent-zinc-900"
+										/>
+									</div>
+								)}
+							</div>
+
+							<div className="space-y-2">
+								<label className="block text-sm font-medium text-zinc-900">Character Set</label>
+								<select
+									value={settings.charSet}
+									onChange={(e) => setSettings((s) => ({ ...s, charSet: e.target.value }))}
+									className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
+									<option value="detailed">Detailed</option>
+									<option value="standard">Standard</option>
+									<option value="blocks">Blocks</option>
+									<option value="binary">Binary</option>
+									<option value="hex">Hex</option>
+									<option value="manual">Manual</option>
+								</select>
+
+								{settings.charSet === 'manual' && (
+									<input
+										type="text"
+										maxLength={1}
+										value={settings.manualChar}
+										onChange={(e) => setSettings((s) => ({ ...s, manualChar: e.target.value }))}
+										className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
+									/>
+								)}
+							</div>
+
+							<div className="grid grid-cols-2 gap-2">
 								<button
-									onClick={() => handleDownload('txt')}
-									className="w-full bg-zinc-500 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2">
-									<Download size={20} />
-									<span>TXT</span>
+									onClick={() => setSettings((s) => ({ ...s, isColor: true }))}
+									className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+										settings.isColor
+											? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
+											: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
+									}`}>
+									Color
 								</button>
 								<button
-									onClick={() => handleDownload('jpg-bw')}
-									className="w-full bg-zinc-500 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2">
-									<Download size={20} />
-									<span>JPG (B&W)</span>
-								</button>
-								<button
-									onClick={() => handleDownload('jpg-color')}
-									className="w-full bg-zinc-500 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2">
-									<Download size={20} />
-									<span>JPG (Color)</span>
-								</button>
-								<button
-									onClick={() => handleDownload('webp-bw')}
-									className="w-full bg-zinc-500 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2">
-									<Download size={20} />
-									<span>WebP (B&W)</span>
-								</button>
-								<button
-									onClick={() => handleDownload('webp-color')}
-									className="w-full bg-zinc-500 hover:bg-zinc-700 text-white p-2 rounded-sm flex items-center justify-center gap-2">
-									<Download size={20} />
-									<span>WebP (Color)</span>
+									onClick={() => setSettings((s) => ({ ...s, isColor: false }))}
+									className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+										!settings.isColor
+											? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
+											: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
+									}`}>
+									B&W
 								</button>
 							</div>
-						)}
+						</div>
+					</div>
+				)}
+
+				{asciiData.length > 0 && (
+					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="space-y-2 rounded-[20px] bg-zinc-50 p-4">
+							<button
+								onClick={() => handleDownload('txt')}
+								className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+								<Download size={18} />
+								<span>TXT</span>
+								</button>
+								<div className="grid grid-cols-2 gap-2">
+									{[
+										['jpg-bw', 'JPG (B&W)'],
+										['jpg-color', 'JPG (Color)'],
+										['webp-bw', 'WebP (B&W)'],
+										['webp-color', 'WebP (Color)'],
+									].map(([type, label]) => (
+										<button
+											key={type}
+											onClick={() => handleDownload(type as 'txt' | 'jpg-bw' | 'jpg-color' | 'webp-bw' | 'webp-color')}
+											className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+											<Download size={18} />
+											<span>{label}</span>
+										</button>
+									))}
+								</div>
+						</div>
 					</div>
 				)}
 			</div>
 
-			{/* Main Content Area */}
-			<div className="flex-1 flex flex-col items-center">
+			<div className="flex min-w-0 flex-1 flex-col items-center">
 				{!originalImage ? (
-					<div className="flex-1 flex items-center justify-center">
-						<div className="border-2 border-dashed border-zinc-300 rounded-sm w-[70vw] h-[70vh] flex items-center justify-center text-zinc-500">
-							Upload an image to get started
+					<div className="flex min-h-72 w-full flex-1 items-center justify-center lg:min-h-0">
+						<div className="flex h-[46vh] min-h-72 w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)] lg:h-full lg:min-h-0">
+							<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500">
+								Upload an image to get started
+							</div>
 						</div>
 					</div>
 				) : (
 					imageDimensions && (
-						<div
-							ref={containerRef}
-							className="relative"
-							style={{
-								width: imageDimensions.width >= imageDimensions.height ? '70vw' : 'auto',
-								height: imageDimensions.height > imageDimensions.width ? '70vh' : 'auto',
-								maxWidth: '100%',
-								maxHeight: '70vh',
-								aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
-							}}>
-							{/* Original Image */}
-							<Image
-								src={originalImage}
-								alt="Original"
-								className="absolute top-0 left-0 select-none pointer-events-none object-contain"
-								style={{
-									clipPath: `inset(0 ${100 - comparePosition}% 0 0)`,
-								}}
-								fill
-								sizes="50vw"
-							/>
-
-							{/* ASCII Art Canvas */}
-							<canvas
-								ref={displayCanvasRef}
-								className="absolute top-0 left-0 select-none pointer-events-none object-contain"
-								style={{
-									clipPath: `inset(0 0 0 ${comparePosition}%)`,
-								}}
-							/>
-
-							{/* Divider */}
+						<div className="flex h-[52vh] min-h-80 w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] lg:h-full lg:min-h-0">
 							<div
-								className="absolute top-0 bg-white/80 w-1 h-full cursor-ew-resize"
+								ref={containerRef}
+								className="relative"
 								style={{
-									left: `${comparePosition}%`,
-								}}
-								onMouseDown={() => setDragState('divider')}
-							/>
+									width: imageDimensions.width >= imageDimensions.height ? '100%' : 'auto',
+									height: imageDimensions.height > imageDimensions.width ? '100%' : 'auto',
+									maxWidth: '100%',
+									maxHeight: 'calc(100% - 24px)',
+									aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
+								}}>
+								<div className="pointer-events-none absolute left-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+									Original
+								</div>
+								<div className="pointer-events-none absolute right-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+									ASCII
+								</div>
+
+								<Image
+									src={originalImage}
+									alt="Original"
+									className="absolute inset-0 select-none pointer-events-none rounded-[24px] object-contain outline outline-1 -outline-offset-1 outline-black/10"
+									style={{
+										clipPath: `inset(0 ${100 - comparePosition}% 0 0)`,
+									}}
+									fill
+									sizes="70vw"
+								/>
+
+								<canvas
+									ref={displayCanvasRef}
+									className="absolute inset-0 select-none pointer-events-none rounded-[24px] object-contain outline outline-1 -outline-offset-1 outline-black/10"
+									style={{
+										clipPath: `inset(0 0 0 ${comparePosition}%)`,
+									}}
+								/>
+
+								<div
+									className="group absolute inset-y-0 z-20 w-10 -translate-x-5 cursor-ew-resize"
+									style={{
+										left: `${comparePosition}%`,
+									}}
+									onMouseDown={() => setDragState('divider')}>
+									<div className="relative mx-auto h-full w-1 rounded-full bg-white/95 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_4px_10px_rgba(0,0,0,0.18)] transition-[background-color,box-shadow] duration-200 ease-out group-hover:bg-white" />
+									<div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_8px_20px_rgba(0,0,0,0.14)] transition-[transform,box-shadow] duration-200 ease-out group-hover:scale-105 group-active:scale-[0.96]">
+										<>
+											<span className="-mr-0.5">L</span>
+											<span className="-ml-0.5">R</span>
+										</>
+									</div>
+								</div>
+
+								<div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white tabular-nums backdrop-blur-sm">
+									{Math.round(comparePosition)}%
+								</div>
+
+								{isGenerating && (
+									<div className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex justify-center">
+										<div className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">Generating...</div>
+									</div>
+								)}
+							</div>
 						</div>
 					)
 				)}
 
-				{/* Hidden Canvas for Processing */}
 				<canvas ref={hiddenCanvasRef} className="hidden" />
 			</div>
 		</div>

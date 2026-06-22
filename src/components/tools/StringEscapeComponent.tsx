@@ -80,46 +80,58 @@ export default function StringEscapeComponent() {
 	}
 
 	return (
-		<div className="flex flex-col md:flex-row gap-4">
+		<div className="flex flex-col gap-6 md:flex-row md:gap-8">
 			<div className="flex-1">
-				<label className="block text-sm font-medium text-zinc-700 mb-2">Input</label>
-				<textarea
-					className="w-full p-3 sm:p-4 border border-zinc-300 rounded-sm h-[40vh] md:h-[60vh] resize-none focus:outline-none focus:ring-2 focus:ring-zinc-500"
-					placeholder="Type or paste your text here..."
-					value={input}
-					onChange={handleInputChange}
-				/>
+				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="rounded-[20px] bg-zinc-50 p-4">
+						<label className="mb-2 block text-sm font-medium text-zinc-700">Input</label>
+						<textarea
+							className="h-[40vh] w-full resize-none rounded-[20px] bg-white p-3 text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:p-4 md:h-[60vh]"
+							placeholder="Type or paste your text here..."
+							value={input}
+							onChange={handleInputChange}
+						/>
+					</div>
+				</div>
 			</div>
 
 			<div className="flex-1">
-				<div className="flex items-center justify-between mb-2">
-					<label className="block text-sm font-medium text-zinc-700">Escaped Output</label>
-					<div className="flex gap-2">
-						<button
-							onClick={handleCopy}
-							className={`p-2 border rounded-sm flex items-center justify-center ${
-								escaped ? 'bg-zinc-500 hover:bg-zinc-700 text-white' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
-							}`}
-							disabled={!escaped}
-							aria-label="Copy to clipboard">
-							<IconCopy size={16} />
-						</button>
-						<button
-							onClick={handleDownload}
-							className={`p-2 border rounded-sm flex items-center justify-center ${
-								escaped ? 'bg-zinc-500 hover:bg-zinc-700 text-white' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
-							}`}
-							disabled={!escaped}
-							aria-label="Download as file">
-							<IconDownload size={16} />
-						</button>
+				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="rounded-[20px] bg-zinc-50 p-4">
+						<div className="mb-2 flex items-center justify-between">
+							<label className="block text-sm font-medium text-zinc-700">Escaped Output</label>
+							<div className="flex gap-2">
+								<button
+									onClick={handleCopy}
+									className={`flex min-h-11 min-w-11 items-center justify-center rounded-2xl transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+										escaped
+											? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] hover:bg-zinc-800'
+											: 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+									}`}
+									disabled={!escaped}
+									aria-label="Copy to clipboard">
+									<IconCopy size={16} />
+								</button>
+								<button
+									onClick={handleDownload}
+									className={`flex min-h-11 min-w-11 items-center justify-center rounded-2xl transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+										escaped
+											? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] hover:bg-zinc-800'
+											: 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+									}`}
+									disabled={!escaped}
+									aria-label="Download as file">
+									<IconDownload size={16} />
+								</button>
+							</div>
+						</div>
+						<textarea
+							className="h-[40vh] w-full resize-none rounded-[20px] bg-white p-3 font-mono text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] sm:p-4 md:h-[60vh]"
+							value={escaped}
+							readOnly
+						/>
 					</div>
 				</div>
-				<textarea
-					className="w-full p-3 sm:p-4 border border-zinc-300 rounded-sm h-[40vh] md:h-[60vh] resize-none bg-zinc-50"
-					value={escaped}
-					readOnly
-				/>
 			</div>
 		</div>
 	);

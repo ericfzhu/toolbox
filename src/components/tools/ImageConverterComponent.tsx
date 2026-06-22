@@ -10,11 +10,14 @@ interface ImageDimensions {
 }
 
 const MAX_IMAGE_DIMENSION = 4096;
+const IMAGE_FORMATS = ['png', 'webp', 'jpeg'] as const;
+
+type ImageFormat = (typeof IMAGE_FORMATS)[number];
 
 export default function ImageConverterComponent() {
 	const [isImageDragging, setIsImageDragging] = useState<boolean>(false);
 	const [originalImage, setOriginalImage] = useState<string | null>(null);
-	const [selectedFormat, setSelectedFormat] = useState<string>('png');
+	const [selectedFormat, setSelectedFormat] = useState<ImageFormat>('png');
 	const [imageDimensions, setImageDimensions] = useState<ImageDimensions>({ width: 0, height: 0 });
 	const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -22,7 +25,6 @@ export default function ImageConverterComponent() {
 	const [dragStartY, setDragStartY] = useState(0);
 	const [activeDimension, setActiveDimension] = useState<'width' | 'height' | null>(null);
 
-	// Cleanup on unmount to prevent memory leaks
 	useEffect(() => {
 		return () => {
 			setOriginalImage(null);
@@ -35,7 +37,6 @@ export default function ImageConverterComponent() {
 			img.onload = () => {
 				let { width, height } = img;
 
-				// Resize if too large
 				if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
 					const scale = MAX_IMAGE_DIMENSION / Math.max(width, height);
 					width = Math.round(width * scale);
@@ -65,12 +66,12 @@ export default function ImageConverterComponent() {
 						width: newValue,
 						height: Math.round(newValue / aspectRatio),
 					};
-				} else {
-					return {
-						width: Math.round(newValue * aspectRatio),
-						height: newValue,
-					};
 				}
+
+				return {
+					width: Math.round(newValue * aspectRatio),
+					height: newValue,
+				};
 			});
 
 			setDragStartY(e.clientY);
@@ -128,18 +129,18 @@ export default function ImageConverterComponent() {
 	function handleDimensionChange(dimension: 'width' | 'height', value: number) {
 		if (value <= 0 || !aspectRatio) return;
 
-		setImageDimensions((prev) => {
+		setImageDimensions(() => {
 			if (dimension === 'width') {
 				return {
 					width: value,
 					height: Math.round(value / aspectRatio),
 				};
-			} else {
-				return {
-					width: Math.round(value * aspectRatio),
-					height: value,
-				};
 			}
+
+			return {
+				width: Math.round(value * aspectRatio),
+				height: value,
+			};
 		});
 	}
 
@@ -184,85 +185,115 @@ export default function ImageConverterComponent() {
 	}
 
 	return (
-		<div className="mx-auto mt-10 space-y-4">
-			<div
-				className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-					isImageDragging ? 'border-zinc-500 bg-zinc-100' : 'border-zinc-300'
-				}`}
-				onDragOver={handleImageDragOver}
-				onDragLeave={handleImageDragLeave}
-				onDrop={handleImageDrop}>
-				<input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" ref={fileInputRef} />
-				<IconUpload className="mx-auto h-12 w-12 text-gray-400" />
-				<p className="mt-2 text-sm text-gray-600">Drag and drop an image here, or</p>
-				<button
-					onClick={() => fileInputRef.current?.click()}
-					className="mt-2 bg-zinc-500 hover:bg-zinc-700 text-white font-bold py-2 px-4 rounded transition duration-300">
-					Select Image
-				</button>
-			</div>
-
-			{originalImage && (
-				<div className="relative text-2xl sm:text-3xl md:text-5xl text-white w-full">
-					<Image
-						src={originalImage}
-						alt="Original"
-						width={imageDimensions.width}
-						height={imageDimensions.height}
-						className="pointer-events-none w-full"
-						style={{
-							width: imageDimensions.width >= imageDimensions.height ? '60vh' : 'auto',
-							height: imageDimensions.height > imageDimensions.width ? '60vh' : 'auto',
-							maxWidth: '100%',
-							maxHeight: '50vh',
-							aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
-						}}
-						unoptimized
-					/>
-
-					<div className="absolute top-2 left-2 space-y-1 flex flex-col">
-						{['png', 'webp', 'jpeg'].map((format) => (
-							<button
-								key={format}
-								onClick={() => setSelectedFormat(format)}
-								className={`text-left px-3 py-1 transition-colors drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] ${
-									selectedFormat === format ? 'bg-zinc-300 bg-opacity-50' : 'bg-transparent hover:bg-zinc-300 hover:bg-opacity-30'
-								}`}>
-								{format.toUpperCase()}
-							</button>
-						))}
+		<div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+			<div className="w-full max-w-sm space-y-4 lg:sticky lg:top-8 lg:w-80 lg:self-start">
+				<div
+					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
+						isImageDragging ? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]' : 'bg-white'
+					}`}
+					onDragOver={handleImageDragOver}
+					onDragLeave={handleImageDragLeave}
+					onDrop={handleImageDrop}>
+					<div
+						className={`rounded-[20px] border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
+							isImageDragging ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
+						}`}>
+						<input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" ref={fileInputRef} />
+						<IconUpload className="mx-auto h-12 w-12 text-zinc-400" />
+						<p className="mt-3 text-sm text-zinc-600">Drag and drop an image here, or</p>
+						<button
+							onClick={() => fileInputRef.current?.click()}
+							className="mt-3 inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+							Select Image
+						</button>
 					</div>
+				</div>
 
-					<div className="absolute top-2 right-2 space-y-1 flex flex-col items-end drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">
-						{['width', 'height'].map((dimension) => (
-							<div key={dimension} className="flex items-center space-x-1 sm:space-x-2 w-fit">
-								<span className="">{dimension.charAt(0).toUpperCase()}:</span>
-								<div className="relative flex items-center">
-									<input
-										type="number"
-										value={imageDimensions[dimension as keyof ImageDimensions]}
-										onChange={(e) => handleDimensionChange(dimension as 'width' | 'height', parseInt(e.target.value))}
-										className="bg-transparent w-20 sm:w-32 text-right focus:outline-none focus:border-zinc-500
-                               [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-									/>
-									<div
-										className="flex-col ml-1 cursor-ns-resize hidden sm:flex"
-										onMouseDown={(e) => handleDragStart(e, dimension as 'width' | 'height')}>
-										<IconChevronUp size={16} className="w-8 h-8" />
-										<IconChevronDown size={16} className="w-8 h-8" />
+				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="space-y-5 rounded-[20px] bg-zinc-50 px-4 py-4">
+						<div className="space-y-2">
+							<label className="block text-sm font-medium text-zinc-900">Format</label>
+							<div className="grid grid-cols-3 gap-2">
+								{IMAGE_FORMATS.map((format) => (
+									<button
+										key={format}
+										onClick={() => setSelectedFormat(format)}
+										className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium uppercase tracking-[0.08em] transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+											selectedFormat === format
+												? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
+												: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
+										}`}>
+										{format}
+									</button>
+								))}
+							</div>
+						</div>
+
+						<div className="space-y-3">
+							<label className="block text-sm font-medium text-zinc-900">Dimensions</label>
+							{(['width', 'height'] as const).map((dimension) => (
+								<div key={dimension} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+									<span className="text-sm capitalize text-zinc-600">{dimension}</span>
+									<div className="flex items-center">
+										<input
+											type="number"
+											value={imageDimensions[dimension]}
+											onChange={(e) => handleDimensionChange(dimension, parseInt(e.target.value))}
+											disabled={!originalImage}
+											className="w-24 bg-transparent text-right text-sm tabular-nums text-zinc-900 focus:outline-none disabled:text-zinc-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+										/>
+										<div
+											className={`ml-2 hidden cursor-ns-resize flex-col text-zinc-500 sm:flex ${originalImage ? '' : 'pointer-events-none opacity-40'}`}
+											onMouseDown={(e) => handleDragStart(e, dimension)}>
+											<IconChevronUp size={16} className="h-5 w-5" />
+											<IconChevronDown size={16} className="h-5 w-5" />
+										</div>
 									</div>
 								</div>
-							</div>
-						))}
-					</div>
+							))}
+						</div>
 
-					<div className="absolute bottom-2 right-2">
 						<button
 							onClick={handleConvertAndDownload}
-							className="drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] text-white font-bold p-2 rounded"
+							disabled={!originalImage}
+							className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none"
 							aria-label="Convert and download image">
-							<IconDownload size={24} />
+							<IconDownload size={20} />
+							<span>Download</span>
 						</button>
+					</div>
+				</div>
+			</div>
+
+			{!originalImage ? (
+				<div className="flex flex-1 items-center justify-center">
+					<div className="flex h-[60vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+						<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500">
+							Upload an image to get started
+						</div>
+					</div>
+				</div>
+			) : (
+				<div className="flex flex-1 flex-col items-center">
+					<div className="flex h-[70vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div
+							className="relative"
+							style={{
+								aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
+								width: imageDimensions.width >= imageDimensions.height ? '100%' : 'auto',
+								height: imageDimensions.height > imageDimensions.width ? '100%' : 'auto',
+								maxWidth: '100%',
+								maxHeight: 'calc(70vh - 24px)',
+							}}>
+							<Image
+								src={originalImage}
+								alt="Original"
+								className="absolute inset-0 select-none rounded-[24px] object-contain outline outline-1 -outline-offset-1 outline-black/10"
+								fill
+								sizes="100vw"
+								unoptimized
+							/>
+						</div>
 					</div>
 				</div>
 			)}
