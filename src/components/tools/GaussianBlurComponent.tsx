@@ -5,14 +5,238 @@ import Image from 'next/image';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useDownload, useImageUpload } from '@/hooks';
-import { ImageDimensions } from '@/lib/types';
 
-interface BlurWorkerResponse {
-	id: number;
-	width: number;
-	height: number;
-	buffer: ArrayBuffer;
+const VERTEX_SHADER_SOURCE = `
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+	gl_Position = vec4(a_position, 0.0, 1.0);
+	v_texCoord = a_texCoord;
 }
+`;
+
+const FRAGMENT_SHADER_SOURCE = `
+precision mediump float;
+
+varying vec2 v_texCoord;
+uniform sampler2D u_image;
+uniform vec2 u_direction;
+uniform vec2 u_texelSize;
+uniform float u_sigma;
+uniform float u_radius;
+
+float gaussian(float x, float sigma) {
+	return exp(-(x * x) / (2.0 * sigma * sigma));
+}
+
+void main() {
+	vec4 color = vec4(0.0);
+	float total = 0.0;
+
+	for (int i = -24; i <= 24; i++) {
+		float fi = float(i);
+		if (abs(fi) > u_radius) {
+			continue;
+		}
+
+		float weight = gaussian(fi, u_sigma);
+		vec2 offset = u_direction * u_texelSize * fi;
+		color += texture2D(u_image, v_texCoord + offset) * weight;
+		total += weight;
+	}
+
+	gl_FragColor = color / total;
+}
+`;
+
+interface WebGLBlurRenderer {
+	render: (image: HTMLImageElement, radius: number, sigma: number) => void;
+	dispose: () => void;
+}
+
+function compileShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
+	const shader = gl.createShader(type);
+	if (!shader) {
+		throw new Error('Failed to create shader.');
+	}
+
+	gl.shaderSource(shader, source);
+	gl.compileShader(shader);
+
+	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+		const info = gl.getShaderInfoLog(shader);
+		gl.deleteShader(shader);
+		throw new Error(info || 'Shader compilation failed.');
+	}
+
+	return shader;
+}
+
+function createProgram(gl: WebGLRenderingContext, vertexSource: string, fragmentSource: string): WebGLProgram {
+	const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
+	const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+	const program = gl.createProgram();
+
+	if (!program) {
+		throw new Error('Failed to create program.');
+	}
+
+	gl.attachShader(program, vertexShader);
+	gl.attachShader(program, fragmentShader);
+	gl.linkProgram(program);
+
+	gl.deleteShader(vertexShader);
+	gl.deleteShader(fragmentShader);
+
+	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+		const info = gl.getProgramInfoLog(program);
+		gl.deleteProgram(program);
+		throw new Error(info || 'Program linking failed.');
+	}
+
+	return program;
+}
+
+function createTexture(gl: WebGLRenderingContext): WebGLTexture {
+	const texture = gl.createTexture();
+	if (!texture) {
+		throw new Error('Failed to create texture.');
+	}
+
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+	return texture;
+}
+
+function createFramebuffer(gl: WebGLRenderingContext, texture: WebGLTexture): WebGLFramebuffer {
+	const framebuffer = gl.createFramebuffer();
+	if (!framebuffer) {
+		throw new Error('Failed to create framebuffer.');
+	}
+
+	gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+	return framebuffer;
+}
+
+function createWebGLBlurRenderer(canvas: HTMLCanvasElement): WebGLBlurRenderer {
+	const gl = canvas.getContext('webgl', {
+		preserveDrawingBuffer: true,
+		premultipliedAlpha: false,
+		alpha: true,
+	});
+
+	if (!gl) {
+		throw new Error('WebGL is not available.');
+	}
+
+	const glContext = gl;
+	const program = createProgram(glContext, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
+	const positionLocation = glContext.getAttribLocation(program, 'a_position');
+	const texCoordLocation = glContext.getAttribLocation(program, 'a_texCoord');
+	const imageLocation = glContext.getUniformLocation(program, 'u_image');
+	const directionLocation = glContext.getUniformLocation(program, 'u_direction');
+	const texelSizeLocation = glContext.getUniformLocation(program, 'u_texelSize');
+	const sigmaLocation = glContext.getUniformLocation(program, 'u_sigma');
+	const radiusLocation = glContext.getUniformLocation(program, 'u_radius');
+
+	if (!imageLocation || !directionLocation || !texelSizeLocation || !sigmaLocation || !radiusLocation) {
+		throw new Error('Failed to locate WebGL uniforms.');
+	}
+
+	const positionBuffer = glContext.createBuffer();
+	const texCoordBuffer = glContext.createBuffer();
+	if (!positionBuffer || !texCoordBuffer) {
+		throw new Error('Failed to create WebGL buffers.');
+	}
+
+	glContext.bindBuffer(glContext.ARRAY_BUFFER, positionBuffer);
+	glContext.bufferData(
+		glContext.ARRAY_BUFFER,
+		new Float32Array([
+			-1, -1,
+			1, -1,
+			-1, 1,
+			-1, 1,
+			1, -1,
+			1, 1,
+		]),
+		glContext.STATIC_DRAW,
+	);
+
+	glContext.bindBuffer(glContext.ARRAY_BUFFER, texCoordBuffer);
+	glContext.bufferData(
+		glContext.ARRAY_BUFFER,
+		new Float32Array([
+			0, 1,
+			1, 1,
+			0, 0,
+			0, 0,
+			1, 1,
+			1, 0,
+		]),
+		glContext.STATIC_DRAW,
+	);
+
+	const sourceTexture = createTexture(glContext);
+	const intermediateTexture = createTexture(glContext);
+	const intermediateFramebuffer = createFramebuffer(glContext, intermediateTexture);
+
+	function drawPass(directionX: number, directionY: number, inputTexture: WebGLTexture, framebuffer: WebGLFramebuffer | null, width: number, height: number, sigma: number, radius: number) {
+		glContext.bindFramebuffer(glContext.FRAMEBUFFER, framebuffer);
+		glContext.viewport(0, 0, width, height);
+		glContext.useProgram(program);
+
+		glContext.bindBuffer(glContext.ARRAY_BUFFER, positionBuffer);
+		glContext.enableVertexAttribArray(positionLocation);
+		glContext.vertexAttribPointer(positionLocation, 2, glContext.FLOAT, false, 0, 0);
+
+		glContext.bindBuffer(glContext.ARRAY_BUFFER, texCoordBuffer);
+		glContext.enableVertexAttribArray(texCoordLocation);
+		glContext.vertexAttribPointer(texCoordLocation, 2, glContext.FLOAT, false, 0, 0);
+
+		glContext.activeTexture(glContext.TEXTURE0);
+		glContext.bindTexture(glContext.TEXTURE_2D, inputTexture);
+		glContext.uniform1i(imageLocation, 0);
+		glContext.uniform2f(directionLocation, directionX, directionY);
+		glContext.uniform2f(texelSizeLocation, 1 / width, 1 / height);
+		glContext.uniform1f(sigmaLocation, Math.max(0.1, sigma));
+		glContext.uniform1f(radiusLocation, Math.max(1, Math.floor(radius)));
+
+		glContext.drawArrays(glContext.TRIANGLES, 0, 6);
+	}
+
+	return {
+			render(image: HTMLImageElement, radius: number, sigma: number) {
+				canvas.width = image.width;
+				canvas.height = image.height;
+
+				glContext.pixelStorei(glContext.UNPACK_FLIP_Y_WEBGL, 1);
+				glContext.bindTexture(glContext.TEXTURE_2D, sourceTexture);
+				glContext.texImage2D(glContext.TEXTURE_2D, 0, glContext.RGBA, glContext.RGBA, glContext.UNSIGNED_BYTE, image);
+
+				glContext.bindTexture(glContext.TEXTURE_2D, intermediateTexture);
+				glContext.texImage2D(glContext.TEXTURE_2D, 0, glContext.RGBA, canvas.width, canvas.height, 0, glContext.RGBA, glContext.UNSIGNED_BYTE, null);
+
+			drawPass(1, 0, sourceTexture, intermediateFramebuffer, canvas.width, canvas.height, sigma, radius);
+			drawPass(0, 1, intermediateTexture, null, canvas.width, canvas.height, sigma, radius);
+		},
+		dispose() {
+				glContext.deleteFramebuffer(intermediateFramebuffer);
+				glContext.deleteTexture(sourceTexture);
+				glContext.deleteTexture(intermediateTexture);
+				glContext.deleteBuffer(positionBuffer);
+				glContext.deleteBuffer(texCoordBuffer);
+				glContext.deleteProgram(program);
+			},
+		};
+	}
 
 export default function GaussianBlurComponent(): JSX.Element {
 	const [radius, setRadius] = useState<number>(2);
@@ -37,74 +261,30 @@ export default function GaussianBlurComponent(): JSX.Element {
 
 	const { downloadDataUrl } = useDownload();
 
-	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const renderCanvasRef = useRef<HTMLCanvasElement>(null);
 	const compareContainerRef = useRef<HTMLDivElement>(null);
 	const sliderRef = useRef<HTMLDivElement>(null);
-	const workerRef = useRef<Worker | null>(null);
-	const activeRequestIdRef = useRef<number>(0);
+	const rendererRef = useRef<WebGLBlurRenderer | null>(null);
 	const blurredImageUrlRef = useRef<string | null>(null);
+	const latestRequestIdRef = useRef<number>(0);
 
 	useEffect(() => {
-		const worker = new Worker(new URL('../../workers/gaussianBlurWorker.ts', import.meta.url), { type: 'module' });
-		workerRef.current = worker;
+		const canvas = renderCanvasRef.current;
+		if (!canvas) return;
 
-		const handleWorkerMessage = (event: MessageEvent<BlurWorkerResponse>) => {
-			if (event.data.id !== activeRequestIdRef.current) return;
-
-			const canvas = canvasRef.current;
-			const ctx = canvas?.getContext('2d');
-			if (!canvas || !ctx) {
-				setIsProcessing(false);
-				return;
-			}
-
-			const { width, height, buffer } = event.data;
-			const blurredData = new ImageData(new Uint8ClampedArray(buffer), width, height);
-			ctx.putImageData(blurredData, 0, 0);
-
-			canvas.toBlob((blob) => {
-				if (event.data.id !== activeRequestIdRef.current) return;
-				if (!blob) {
-					setIsProcessing(false);
-					return;
-				}
-
-				if (blurredImageUrlRef.current) {
-					URL.revokeObjectURL(blurredImageUrlRef.current);
-				}
-
-				const nextUrl = URL.createObjectURL(blob);
-				blurredImageUrlRef.current = nextUrl;
-				setBlurredImage(nextUrl);
-				setIsProcessing(false);
-			}, 'image/png');
-		};
-
-		const handleWorkerError = (error: ErrorEvent) => {
-			console.error('Error applying blur:', error);
-			setIsProcessing(false);
-		};
-
-		worker.addEventListener('message', handleWorkerMessage);
-		worker.addEventListener('error', handleWorkerError);
+		try {
+			rendererRef.current = createWebGLBlurRenderer(canvas);
+		} catch (error) {
+			console.error('Failed to initialize WebGL blur renderer:', error);
+		}
 
 		return () => {
-			worker.removeEventListener('message', handleWorkerMessage);
-			worker.removeEventListener('error', handleWorkerError);
-			worker.terminate();
-			workerRef.current = null;
+			rendererRef.current?.dispose();
+			rendererRef.current = null;
 
 			if (blurredImageUrlRef.current) {
 				URL.revokeObjectURL(blurredImageUrlRef.current);
 				blurredImageUrlRef.current = null;
-			}
-
-			const canvas = canvasRef.current;
-			if (canvas) {
-				const ctx = canvas.getContext('2d');
-				ctx?.clearRect(0, 0, canvas.width, canvas.height);
-				canvas.width = 0;
-				canvas.height = 0;
 			}
 		};
 	}, []);
@@ -120,43 +300,61 @@ export default function GaussianBlurComponent(): JSX.Element {
 			return;
 		}
 
-		setIsProcessing(true);
+		const renderer = rendererRef.current;
+		const canvas = renderCanvasRef.current;
+		if (!renderer || !canvas) {
+			setIsProcessing(false);
+			return;
+		}
+
 		const img = new window.Image();
-		img.onload = (): void => {
-			const canvas = canvasRef.current;
-			const ctx = canvas?.getContext('2d');
-			const worker = workerRef.current;
-			if (!canvas || !ctx || !worker) {
+		const requestId = latestRequestIdRef.current + 1;
+		latestRequestIdRef.current = requestId;
+
+		setIsProcessing(true);
+
+		img.onload = () => {
+			if (requestId !== latestRequestIdRef.current) return;
+
+			try {
+				renderer.render(img, appliedRadius, appliedSigma);
+			} catch (error) {
+				console.error('Error applying WebGL blur:', error);
 				setIsProcessing(false);
 				return;
 			}
 
-			canvas.width = img.width;
-			canvas.height = img.height;
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.drawImage(img, 0, 0);
+			requestAnimationFrame(() => {
+				canvas.toBlob((blob) => {
+					if (requestId !== latestRequestIdRef.current) return;
+					if (!blob) {
+						setIsProcessing(false);
+						return;
+					}
 
-			const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-			const requestId = activeRequestIdRef.current + 1;
-			activeRequestIdRef.current = requestId;
+					if (blurredImageUrlRef.current) {
+						URL.revokeObjectURL(blurredImageUrlRef.current);
+					}
 
-			worker.postMessage(
-				{
-					id: requestId,
-					width: canvas.width,
-					height: canvas.height,
-					radius: appliedRadius,
-					sigma: appliedSigma,
-					buffer: imageData.data.buffer,
-				},
-				[imageData.data.buffer],
-			);
+					const nextUrl = URL.createObjectURL(blob);
+					blurredImageUrlRef.current = nextUrl;
+					setBlurredImage(nextUrl);
+					setIsProcessing(false);
+				}, 'image/png');
+			});
 		};
+
+		img.onerror = () => {
+			if (requestId === latestRequestIdRef.current) {
+				setIsProcessing(false);
+			}
+		};
+
 		img.src = originalImage;
 	}, [appliedRadius, appliedSigma, originalImage]);
 
-	function handleSliderChange(e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<number>>) {
-		setter(parseFloat(e.target.value));
+	function handleSliderChange(event: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<number>>) {
+		setter(parseFloat(event.target.value));
 	}
 
 	function commitBlurSettings() {
@@ -165,16 +363,16 @@ export default function GaussianBlurComponent(): JSX.Element {
 	}
 
 	const handleCompareSliderDrag = useCallback(
-		(e: React.MouseEvent<HTMLDivElement>) => {
-			e.preventDefault();
+		(event: React.MouseEvent<HTMLDivElement>) => {
+			event.preventDefault();
 			const container = compareContainerRef.current;
 			if (!container) return;
 
-			const startX = e.clientX;
+			const startX = event.clientX;
 			const startPosition = comparePosition;
 
-			const handleMouseMove = (event: MouseEvent) => {
-				const deltaX = event.clientX - startX;
+			const handleMouseMove = (moveEvent: MouseEvent) => {
+				const deltaX = moveEvent.clientX - startX;
 				const deltaPercent = (deltaX / container.offsetWidth) * 100;
 				setComparePosition(Math.max(0, Math.min(100, startPosition + deltaPercent)));
 			};
@@ -233,7 +431,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 								type="range"
 								id="r"
 								value={radius}
-								onChange={(e) => handleSliderChange(e, setRadius)}
+								onChange={(event) => handleSliderChange(event, setRadius)}
 								onMouseUp={commitBlurSettings}
 								onTouchEnd={commitBlurSettings}
 								onBlur={commitBlurSettings}
@@ -255,7 +453,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 								type="range"
 								id="sigma"
 								value={sigma}
-								onChange={(e) => handleSliderChange(e, setSigma)}
+								onChange={(event) => handleSliderChange(event, setSigma)}
 								onMouseUp={commitBlurSettings}
 								onTouchEnd={commitBlurSettings}
 								onBlur={commitBlurSettings}
@@ -293,16 +491,17 @@ export default function GaussianBlurComponent(): JSX.Element {
 				</div>
 			) : (
 				originalImage &&
-				blurredImage &&
 				imageDimensions && (
 					<div className="flex-1 flex flex-col items-center">
 						<div className="flex h-[70vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 							<div
-								className="relative w-full overflow-hidden rounded-[24px]"
+								className="relative"
 								ref={compareContainerRef}
 								style={{
 									aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`,
-									maxWidth: `min(100%, calc((70vh - 24px) * ${imageDimensions.width / imageDimensions.height}))`,
+									width: imageDimensions.width >= imageDimensions.height ? '100%' : 'auto',
+									height: imageDimensions.height > imageDimensions.width ? '100%' : 'auto',
+									maxWidth: '100%',
 									maxHeight: 'calc(70vh - 24px)',
 								}}>
 								<div className="pointer-events-none absolute left-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
@@ -314,7 +513,7 @@ export default function GaussianBlurComponent(): JSX.Element {
 								<Image
 									src={originalImage}
 									alt="Original"
-									className="absolute inset-0 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
+									className="absolute inset-0 select-none pointer-events-none rounded-[24px] object-contain outline outline-1 -outline-offset-1 outline-black/10"
 									style={{
 										clipPath: `inset(0 ${100 - comparePosition}% 0 0)`,
 									}}
@@ -322,20 +521,24 @@ export default function GaussianBlurComponent(): JSX.Element {
 									sizes="100vw"
 									unoptimized
 								/>
-								<Image
-									src={blurredImage}
-									alt="Blurred"
-									className="absolute inset-0 select-none pointer-events-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
-									style={{
-										clipPath: `inset(0 0 0 ${comparePosition}%)`,
-									}}
-									fill
-									sizes="100vw"
-									unoptimized
-								/>
+								{blurredImage ? (
+									<Image
+										src={blurredImage}
+										alt="Blurred"
+										className="absolute inset-0 select-none pointer-events-none rounded-[24px] object-contain outline outline-1 -outline-offset-1 outline-black/10"
+										style={{
+											clipPath: `inset(0 0 0 ${comparePosition}%)`,
+										}}
+										fill
+										sizes="100vw"
+										unoptimized
+									/>
+								) : (
+									<div className="absolute inset-0 rounded-[24px] bg-white/60 backdrop-blur-[2px]" />
+								)}
 								<div
 									ref={sliderRef}
-									className="group absolute inset-y-0 z-20"
+									className={`group absolute inset-y-0 z-20 ${blurredImage ? '' : 'pointer-events-none opacity-50'}`}
 									style={{
 										left: `${comparePosition}%`,
 										width: '40px',
@@ -354,13 +557,18 @@ export default function GaussianBlurComponent(): JSX.Element {
 								<div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white tabular-nums backdrop-blur-sm">
 									{Math.round(comparePosition)}%
 								</div>
+								{!blurredImage && (
+									<div className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex justify-center">
+										<div className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">Processing blur...</div>
+									</div>
+								)}
 							</div>
 						</div>
 						{isProcessing && <p className="mt-3 text-sm text-zinc-500">Processing image...</p>}
 					</div>
 				)
 			)}
-			<canvas ref={canvasRef} style={{ display: 'none' }} />
+			<canvas ref={renderCanvasRef} className="hidden" />
 		</div>
 	);
 }
