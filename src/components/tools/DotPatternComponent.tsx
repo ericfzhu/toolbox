@@ -46,6 +46,8 @@ export default function DotPatternComponent() {
 	const handleImageUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
 		if (file) {
+			// processFile is a hoisted helper whose dependencies are only stable setters and refs.
+			// eslint-disable-next-line react-hooks/immutability
 			processFile(file);
 		}
 	}, []);

@@ -13,7 +13,7 @@ interface UseImageUploadReturn {
 	image: string | null;
 	dimensions: ImageDimensions | null;
 	isDragging: boolean;
-	fileInputRef: React.RefObject<HTMLInputElement>;
+	fileInputRef: React.RefObject<HTMLInputElement | null>;
 	handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	handleDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
 	handleDragLeave: () => void;

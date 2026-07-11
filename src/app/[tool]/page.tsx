@@ -7,13 +7,14 @@ import ToolLayout from '@/components/ToolLayout';
 export const dynamic = 'force-static';
 
 interface Props {
-	params: {
+	params: Promise<{
 		tool: string;
-	};
+	}>;
 }
 
-export default function ToolPage({ params }: Props) {
-	const tool = getToolByPath(params.tool);
+export default async function ToolPage({ params }: Props) {
+	const { tool: toolPath } = await params;
+	const tool = getToolByPath(toolPath);
 
 	if (!tool) {
 		notFound();

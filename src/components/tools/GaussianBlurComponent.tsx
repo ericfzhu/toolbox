@@ -1,10 +1,9 @@
 'use client';
 
+import { useDownload, useImageUpload } from '@/hooks';
 import { IconDownload } from '@tabler/icons-react';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-
-import { useDownload, useImageUpload } from '@/hooks';
 
 const VERTEX_SHADER_SOURCE = `
 attribute vec2 a_position;
@@ -157,38 +156,25 @@ function createWebGLBlurRenderer(canvas: HTMLCanvasElement): WebGLBlurRenderer {
 	}
 
 	glContext.bindBuffer(glContext.ARRAY_BUFFER, positionBuffer);
-	glContext.bufferData(
-		glContext.ARRAY_BUFFER,
-		new Float32Array([
-			-1, -1,
-			1, -1,
-			-1, 1,
-			-1, 1,
-			1, -1,
-			1, 1,
-		]),
-		glContext.STATIC_DRAW,
-	);
+	glContext.bufferData(glContext.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), glContext.STATIC_DRAW);
 
 	glContext.bindBuffer(glContext.ARRAY_BUFFER, texCoordBuffer);
-	glContext.bufferData(
-		glContext.ARRAY_BUFFER,
-		new Float32Array([
-			0, 1,
-			1, 1,
-			0, 0,
-			0, 0,
-			1, 1,
-			1, 0,
-		]),
-		glContext.STATIC_DRAW,
-	);
+	glContext.bufferData(glContext.ARRAY_BUFFER, new Float32Array([0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0]), glContext.STATIC_DRAW);
 
 	const sourceTexture = createTexture(glContext);
 	const intermediateTexture = createTexture(glContext);
 	const intermediateFramebuffer = createFramebuffer(glContext, intermediateTexture);
 
-	function drawPass(directionX: number, directionY: number, inputTexture: WebGLTexture, framebuffer: WebGLFramebuffer | null, width: number, height: number, sigma: number, radius: number) {
+	function drawPass(
+		directionX: number,
+		directionY: number,
+		inputTexture: WebGLTexture,
+		framebuffer: WebGLFramebuffer | null,
+		width: number,
+		height: number,
+		sigma: number,
+		radius: number,
+	) {
 		glContext.bindFramebuffer(glContext.FRAMEBUFFER, framebuffer);
 		glContext.viewport(0, 0, width, height);
 		glContext.useProgram(program);
@@ -213,32 +199,42 @@ function createWebGLBlurRenderer(canvas: HTMLCanvasElement): WebGLBlurRenderer {
 	}
 
 	return {
-			render(image: HTMLImageElement, radius: number, sigma: number) {
-				canvas.width = image.width;
-				canvas.height = image.height;
+		render(image: HTMLImageElement, radius: number, sigma: number) {
+			canvas.width = image.width;
+			canvas.height = image.height;
 
-				glContext.pixelStorei(glContext.UNPACK_FLIP_Y_WEBGL, 1);
-				glContext.bindTexture(glContext.TEXTURE_2D, sourceTexture);
-				glContext.texImage2D(glContext.TEXTURE_2D, 0, glContext.RGBA, glContext.RGBA, glContext.UNSIGNED_BYTE, image);
+			glContext.pixelStorei(glContext.UNPACK_FLIP_Y_WEBGL, 1);
+			glContext.bindTexture(glContext.TEXTURE_2D, sourceTexture);
+			glContext.texImage2D(glContext.TEXTURE_2D, 0, glContext.RGBA, glContext.RGBA, glContext.UNSIGNED_BYTE, image);
 
-				glContext.bindTexture(glContext.TEXTURE_2D, intermediateTexture);
-				glContext.texImage2D(glContext.TEXTURE_2D, 0, glContext.RGBA, canvas.width, canvas.height, 0, glContext.RGBA, glContext.UNSIGNED_BYTE, null);
+			glContext.bindTexture(glContext.TEXTURE_2D, intermediateTexture);
+			glContext.texImage2D(
+				glContext.TEXTURE_2D,
+				0,
+				glContext.RGBA,
+				canvas.width,
+				canvas.height,
+				0,
+				glContext.RGBA,
+				glContext.UNSIGNED_BYTE,
+				null,
+			);
 
 			drawPass(1, 0, sourceTexture, intermediateFramebuffer, canvas.width, canvas.height, sigma, radius);
 			drawPass(0, 1, intermediateTexture, null, canvas.width, canvas.height, sigma, radius);
 		},
 		dispose() {
-				glContext.deleteFramebuffer(intermediateFramebuffer);
-				glContext.deleteTexture(sourceTexture);
-				glContext.deleteTexture(intermediateTexture);
-				glContext.deleteBuffer(positionBuffer);
-				glContext.deleteBuffer(texCoordBuffer);
-				glContext.deleteProgram(program);
-			},
-		};
-	}
+			glContext.deleteFramebuffer(intermediateFramebuffer);
+			glContext.deleteTexture(sourceTexture);
+			glContext.deleteTexture(intermediateTexture);
+			glContext.deleteBuffer(positionBuffer);
+			glContext.deleteBuffer(texCoordBuffer);
+			glContext.deleteProgram(program);
+		},
+	};
+}
 
-export default function GaussianBlurComponent(): JSX.Element {
+export default function GaussianBlurComponent(): React.JSX.Element {
 	const [radius, setRadius] = useState<number>(2);
 	const [sigma, setSigma] = useState<number>(5);
 	const [appliedRadius, setAppliedRadius] = useState<number>(2);
@@ -399,7 +395,9 @@ export default function GaussianBlurComponent(): JSX.Element {
 			<div className="w-full max-w-sm space-y-4 lg:sticky lg:top-8 lg:w-80 lg:self-start">
 				<div
 					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
-						isDragging ? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]' : 'bg-white'
+						isDragging
+							? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]'
+							: 'bg-white'
 					}`}
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
@@ -559,7 +557,9 @@ export default function GaussianBlurComponent(): JSX.Element {
 								</div>
 								{!blurredImage && (
 									<div className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex justify-center">
-										<div className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">Processing blur...</div>
+										<div className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+											Processing blur...
+										</div>
 									</div>
 								)}
 							</div>
