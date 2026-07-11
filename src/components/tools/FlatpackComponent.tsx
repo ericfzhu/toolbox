@@ -1,9 +1,8 @@
 'use client';
 
+import { useClipboard, useDownload } from '@/hooks';
 import { IconCopy, IconDownload } from '@tabler/icons-react';
 import { useCallback, useRef, useState } from 'react';
-
-import { useClipboard, useDownload } from '@/hooks';
 
 const CODE_FILE_EXTENSIONS = new Set([
 	'js',
@@ -42,7 +41,6 @@ const CODE_FILE_EXTENSIONS = new Set([
 	'proto',
 	'toml',
 	'ini',
-	'env',
 	'dockerfile',
 	'makefile',
 ]);
@@ -83,10 +81,22 @@ const SKIP_DIRECTORIES = new Set([
 const SCAN_PROGRESS_INTERVAL = 50;
 const READ_BATCH_SIZE = 100;
 
+const SENSITIVE_FILE_NAMES = new Set(['.env', '.npmrc', '.pypirc', '.netrc', 'credentials.json', 'service-account.json', 'id_rsa', 'id_ed25519']);
+const SENSITIVE_FILE_EXTENSIONS = new Set(['pem', 'key', 'p12', 'pfx', 'jks', 'keystore']);
+
+function isSensitiveFile(fileName: string): boolean {
+	const lowerName = fileName.toLowerCase();
+	if (SENSITIVE_FILE_NAMES.has(lowerName) || lowerName.startsWith('.env.')) return true;
+
+	const extension = lowerName.split('.').pop();
+	return extension ? SENSITIVE_FILE_EXTENSIONS.has(extension) : false;
+}
+
 function isCodeFile(fileName: string): boolean {
 	const lowerName = fileName.toLowerCase();
+	if (isSensitiveFile(lowerName)) return false;
 	// Handle special files without extensions
-	if (lowerName === 'dockerfile' || lowerName === 'makefile' || lowerName === '.env') {
+	if (lowerName === 'dockerfile' || lowerName === 'makefile') {
 		return true;
 	}
 	const parts = fileName.split('.');
@@ -154,10 +164,7 @@ async function collectFileHandles(
 }
 
 // Process files in parallel batches for speed
-async function processFilesInBatches(
-	files: FileEntry[],
-	options: ProcessFileOptions = {},
-): Promise<boolean> {
+async function processFilesInBatches(files: FileEntry[], options: ProcessFileOptions = {}): Promise<boolean> {
 	const batchSize = options.batchSize ?? READ_BATCH_SIZE;
 	let processed = 0;
 
@@ -316,7 +323,7 @@ export default function CodeAggregatorComponent() {
 						</button>
 						<p className="mt-3 text-sm text-zinc-600">Select a folder to aggregate code files</p>
 						<p className="mx-auto mt-1 max-w-[18rem] text-xs leading-5 text-zinc-400">
-							Automatically skips node_modules, .git, dist, build, and other non-source directories
+							Automatically skips dependencies, generated output, environment files, and common credential formats
 						</p>
 					</div>
 				</div>

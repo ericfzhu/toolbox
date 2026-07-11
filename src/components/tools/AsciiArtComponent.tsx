@@ -126,6 +126,68 @@ function applySobelEdgeDetection(data: number[], width: number, height: number, 
 	return result;
 }
 
+function createGaussianKernel(sigma: number): number[] {
+	const radius = Math.max(1, Math.ceil(sigma * 3));
+	const kernel: number[] = [];
+	let total = 0;
+
+	for (let offset = -radius; offset <= radius; offset++) {
+		const weight = Math.exp(-(offset * offset) / (2 * sigma * sigma));
+		kernel.push(weight);
+		total += weight;
+	}
+
+	return kernel.map((weight) => weight / total);
+}
+
+function applySeparableGaussianBlur(data: number[], width: number, height: number, sigma: number): Float32Array {
+	const kernel = createGaussianKernel(sigma);
+	const radius = Math.floor(kernel.length / 2);
+	const horizontal = new Float32Array(data.length);
+	const result = new Float32Array(data.length);
+
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			let value = 0;
+			for (let offset = -radius; offset <= radius; offset++) {
+				const sampleX = clamp(x + offset, 0, width - 1);
+				value += data[y * width + sampleX] * kernel[offset + radius];
+			}
+			horizontal[y * width + x] = value;
+		}
+	}
+
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			let value = 0;
+			for (let offset = -radius; offset <= radius; offset++) {
+				const sampleY = clamp(y + offset, 0, height - 1);
+				value += horizontal[sampleY * width + x] * kernel[offset + radius];
+			}
+			result[y * width + x] = value;
+		}
+	}
+
+	return result;
+}
+
+function applyDifferenceOfGaussians(data: number[], width: number, height: number, threshold: number): number[] {
+	const narrowBlur = applySeparableGaussianBlur(data, width, height, 0.8);
+	const wideBlur = applySeparableGaussianBlur(data, width, height, 1.6);
+	const differences = new Float32Array(data.length);
+	let maxDifference = 0;
+
+	for (let i = 0; i < data.length; i++) {
+		const difference = Math.abs(narrowBlur[i] - wideBlur[i]);
+		differences[i] = difference;
+		maxDifference = Math.max(maxDifference, difference);
+	}
+
+	if (maxDifference === 0) return new Array(data.length).fill(255);
+
+	return Array.from(differences, (difference) => ((difference / maxDifference) * 255 >= threshold ? 0 : 255));
+}
+
 // Maximum image dimension to prevent memory issues
 const MAX_IMAGE_DIMENSION = 2048;
 
@@ -271,8 +333,12 @@ export default function EnhancedAsciiArtComponent() {
 				grayData[i / 4] = lum;
 			}
 
-			// Apply dithering if enabled
-			if (settings.isDithering) {
+			// Edge detection produces a binary image, so dithering only applies to normal tone conversion.
+			if (settings.edgeMethod === 'sobel') {
+				grayData = applySobelEdgeDetection(grayData, asciiWidth, asciiHeight, settings.edgeThreshold);
+			} else if (settings.edgeMethod === 'dog') {
+				grayData = applyDifferenceOfGaussians(grayData, asciiWidth, asciiHeight, settings.dogThreshold);
+			} else if (settings.isDithering) {
 				switch (settings.ditherAlgorithm) {
 					case 'floyd':
 						grayData = applyFloydSteinbergDithering(grayData, asciiWidth, asciiHeight, nLevels);
@@ -281,11 +347,6 @@ export default function EnhancedAsciiArtComponent() {
 						grayData = applyAtkinsonDithering(grayData, asciiWidth, asciiHeight, nLevels);
 						break;
 				}
-			}
-
-			// Apply edge detection if enabled
-			if (settings.edgeMethod === 'sobel') {
-				grayData = applySobelEdgeDetection(grayData, asciiWidth, asciiHeight, settings.edgeThreshold);
 			}
 
 			// Convert to ASCII characters with color information
@@ -757,23 +818,23 @@ export default function EnhancedAsciiArtComponent() {
 								className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
 								<Download size={18} />
 								<span>TXT</span>
-								</button>
-								<div className="grid grid-cols-2 gap-2">
-									{[
-										['jpg-bw', 'JPG (B&W)'],
-										['jpg-color', 'JPG (Color)'],
-										['webp-bw', 'WebP (B&W)'],
-										['webp-color', 'WebP (Color)'],
-									].map(([type, label]) => (
-										<button
-											key={type}
-											onClick={() => handleDownload(type as 'txt' | 'jpg-bw' | 'jpg-color' | 'webp-bw' | 'webp-color')}
-											className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
-											<Download size={18} />
-											<span>{label}</span>
-										</button>
-									))}
-								</div>
+							</button>
+							<div className="grid grid-cols-2 gap-2">
+								{[
+									['jpg-bw', 'JPG (B&W)'],
+									['jpg-color', 'JPG (Color)'],
+									['webp-bw', 'WebP (B&W)'],
+									['webp-color', 'WebP (Color)'],
+								].map(([type, label]) => (
+									<button
+										key={type}
+										onClick={() => handleDownload(type as 'txt' | 'jpg-bw' | 'jpg-color' | 'webp-bw' | 'webp-color')}
+										className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+										<Download size={18} />
+										<span>{label}</span>
+									</button>
+								))}
+							</div>
 						</div>
 					</div>
 				)}
@@ -848,7 +909,9 @@ export default function EnhancedAsciiArtComponent() {
 
 								{isGenerating && (
 									<div className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex justify-center">
-										<div className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">Generating...</div>
+										<div className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+											Generating...
+										</div>
 									</div>
 								)}
 							</div>

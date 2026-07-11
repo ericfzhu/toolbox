@@ -5,6 +5,7 @@ import { IconCheck, IconChevronDown, IconChevronRight, IconCopy } from '@tabler/
 import { useCallback, useDeferredValue, useMemo, useState } from 'react';
 
 type ViewMode = 'tree' | 'formatted' | 'minified';
+type Indentation = 2 | 4 | '\t';
 
 const MAX_TREE_DEPTH = 80;
 const MAX_TREE_CHILDREN = 500;
@@ -14,6 +15,7 @@ interface ParseResult {
 	valid: boolean;
 	data: unknown;
 	error: string | null;
+	empty: boolean;
 }
 
 interface JsonStats {
@@ -70,7 +72,7 @@ function getPreviewEntries(data: unknown, maxChildren: number): [string, unknown
 	return [];
 }
 
-function stringifyJson(data: unknown, spacing?: number): string {
+function stringifyJson(data: unknown, spacing?: number | string): string {
 	try {
 		return JSON.stringify(data, null, spacing);
 	} catch {
@@ -260,7 +262,7 @@ function JsonNode({ data, name, depth = 0, isLast = true }: JsonNodeProps) {
 
 export default function JsonToolComponent() {
 	const [input, setInput] = useState('');
-	const [indentSize, setIndentSize] = useState(2);
+	const [indentation, setIndentation] = useState<Indentation>(2);
 	const [viewMode, setViewMode] = useState<ViewMode>('formatted');
 	const deferredInput = useDeferredValue(input);
 	const isInputPending = input !== deferredInput;
@@ -269,37 +271,37 @@ export default function JsonToolComponent() {
 
 	const parseResult = useMemo<ParseResult>(() => {
 		if (!deferredInput.trim()) {
-			return { valid: true, data: null, error: null };
+			return { valid: true, data: null, error: null, empty: true };
 		}
 		try {
 			const data = JSON.parse(deferredInput);
-			return { valid: true, data, error: null };
+			return { valid: true, data, error: null, empty: false };
 		} catch (e) {
-			return { valid: false, data: null, error: (e as Error).message };
+			return { valid: false, data: null, error: (e as Error).message, empty: false };
 		}
 	}, [deferredInput]);
 
 	const formattedJson = useMemo(() => {
-		if (!parseResult.valid || parseResult.data === null) return '';
-		return stringifyJson(parseResult.data, indentSize);
-	}, [parseResult, indentSize]);
+		if (!parseResult.valid || parseResult.empty) return '';
+		return stringifyJson(parseResult.data, indentation);
+	}, [parseResult, indentation]);
 
 	const minifiedJson = useMemo(() => {
-		if (!parseResult.valid || parseResult.data === null) return '';
+		if (!parseResult.valid || parseResult.empty) return '';
 		return stringifyJson(parseResult.data);
 	}, [parseResult]);
 
 	const handleFormat = useCallback(() => {
-		if (!isInputPending && parseResult.valid && parseResult.data !== null) {
+		if (!isInputPending && parseResult.valid && !parseResult.empty) {
 			setInput(formattedJson);
 		}
-	}, [isInputPending, parseResult.valid, parseResult.data, formattedJson]);
+	}, [isInputPending, parseResult.valid, parseResult.empty, formattedJson]);
 
 	const handleMinify = useCallback(() => {
-		if (!isInputPending && parseResult.valid && parseResult.data !== null) {
+		if (!isInputPending && parseResult.valid && !parseResult.empty) {
 			setInput(minifiedJson);
 		}
-	}, [isInputPending, parseResult.valid, parseResult.data, minifiedJson]);
+	}, [isInputPending, parseResult.valid, parseResult.empty, minifiedJson]);
 
 	const handleCopy = useCallback(() => {
 		if (viewMode === 'minified') {
@@ -338,7 +340,7 @@ export default function JsonToolComponent() {
 
 	// Calculate stats
 	const stats = useMemo(() => {
-		if (!parseResult.valid || parseResult.data === null) return null;
+		if (!parseResult.valid || parseResult.empty) return null;
 		return getJsonStats(parseResult.data);
 	}, [parseResult]);
 
@@ -383,12 +385,12 @@ export default function JsonToolComponent() {
 					<label className="hidden text-sm text-zinc-600 sm:inline">Indent:</label>
 					<div className="rounded-2xl bg-zinc-50 pr-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 						<select
-							value={indentSize}
-							onChange={(e) => setIndentSize(Number(e.target.value))}
+							value={indentation === '\t' ? 'tab' : indentation}
+							onChange={(e) => setIndentation(e.target.value === 'tab' ? '\t' : (Number(e.target.value) as 2 | 4))}
 							className="h-11 cursor-pointer border-none bg-transparent pl-3 pr-8 text-sm outline-none sm:pl-4">
 							<option value={2}>2 spaces</option>
 							<option value={4}>4 spaces</option>
-							<option value={1}>1 tab</option>
+							<option value="tab">1 tab</option>
 						</select>
 					</div>
 				</div>
@@ -469,7 +471,7 @@ export default function JsonToolComponent() {
 								<div className="h-[40vh] w-full overflow-auto rounded-[20px] bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] md:h-[60vh]">
 									{isInputPending ? (
 										<span className="text-zinc-400">Parsing JSON...</span>
-									) : parseResult.valid && parseResult.data !== null ? (
+									) : parseResult.valid && !parseResult.empty ? (
 										<JsonNode data={parseResult.data} />
 									) : (
 										<span className="text-zinc-400">Enter valid JSON to see tree view</span>

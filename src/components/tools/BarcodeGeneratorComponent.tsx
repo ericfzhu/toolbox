@@ -1,22 +1,11 @@
 'use client';
 
+import { useDownload, useKeyboardShortcut } from '@/hooks';
 import { IconDownload } from '@tabler/icons-react';
 import JsBarcode from 'jsbarcode';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useDownload, useKeyboardShortcut } from '@/hooks';
-
-type BarcodeFormat =
-	| 'CODE128'
-	| 'CODE39'
-	| 'EAN13'
-	| 'EAN8'
-	| 'UPC'
-	| 'ITF14'
-	| 'ITF'
-	| 'MSI'
-	| 'pharmacode'
-	| 'codabar';
+type BarcodeFormat = 'CODE128' | 'CODE39' | 'EAN13' | 'EAN8' | 'UPC' | 'ITF14' | 'ITF' | 'MSI' | 'pharmacode' | 'codabar';
 
 interface FormatInfo {
 	name: string;
@@ -101,6 +90,7 @@ export default function BarcodeGeneratorComponent() {
 
 	const generateBarcode = useCallback(() => {
 		if (!text.trim()) {
+			svgRef.current?.replaceChildren();
 			setError(null);
 			setBarcodeGenerated(false);
 			return;
@@ -108,6 +98,7 @@ export default function BarcodeGeneratorComponent() {
 
 		const formatInfo = FORMAT_INFO[format];
 		if (formatInfo.validator && !formatInfo.validator(text)) {
+			svgRef.current?.replaceChildren();
 			setError(`Invalid format for ${formatInfo.name}. ${formatInfo.description}`);
 			setBarcodeGenerated(false);
 			return;
@@ -130,6 +121,7 @@ export default function BarcodeGeneratorComponent() {
 			setError(null);
 			setBarcodeGenerated(true);
 		} catch (err) {
+			svgRef.current.replaceChildren();
 			setError(`Failed to generate barcode. ${err instanceof Error ? err.message : 'Invalid input for this format.'}`);
 			setBarcodeGenerated(false);
 		}
@@ -303,20 +295,21 @@ export default function BarcodeGeneratorComponent() {
 				</div>
 			</div>
 
-			<div className="flex min-h-[24rem] min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+			<div className="relative flex min-h-[24rem] min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 				{error ? (
-					<div className="rounded-[24px] bg-red-50 px-5 py-4 text-center text-sm text-red-600 shadow-[0px_0px_0px_1px_rgba(220,38,38,0.16)]">{error}</div>
-				) : barcodeGenerated ? (
-					<div className="max-w-full overflow-x-auto rounded-[24px] p-5 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1),0px_12px_30px_rgba(0,0,0,0.08)]" style={{ backgroundColor: backgroundColor }}>
-						<svg ref={svgRef} className="h-auto max-w-full outline outline-1 -outline-offset-1 outline-black/10" />
+					<div className="rounded-[24px] bg-red-50 px-5 py-4 text-center text-sm text-red-600 shadow-[0px_0px_0px_1px_rgba(220,38,38,0.16)]">
+						{error}
 					</div>
-				) : (
+				) : !barcodeGenerated ? (
 					<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-sm text-zinc-500 sm:text-base">
 						<p>Enter content to generate barcode</p>
-						<svg ref={svgRef} className="hidden" />
 					</div>
-				)}
-				{!barcodeGenerated && !error && <svg ref={svgRef} className="hidden" />}
+				) : null}
+				<div
+					className={`${barcodeGenerated && !error ? 'block' : 'pointer-events-none absolute invisible'} max-w-full overflow-x-auto rounded-[24px] p-5 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1),0px_12px_30px_rgba(0,0,0,0.08)]`}
+					style={{ backgroundColor }}>
+					<svg ref={svgRef} className="h-auto max-w-full outline outline-1 -outline-offset-1 outline-black/10" />
+				</div>
 			</div>
 		</div>
 	);
