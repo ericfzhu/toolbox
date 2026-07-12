@@ -3,6 +3,7 @@ import { TOOLS, getToolByPath } from '@/data/tools';
 import { notFound } from 'next/navigation';
 
 import ToolLayout from '@/components/ToolLayout';
+import { TOOL_COMPONENTS } from '@/components/tools/registry';
 
 export const dynamic = 'force-static';
 
@@ -15,12 +16,11 @@ interface Props {
 export default async function ToolPage({ params }: Props) {
 	const { tool: toolPath } = await params;
 	const tool = getToolByPath(toolPath);
+	const ToolComponent = TOOL_COMPONENTS[toolPath];
 
-	if (!tool) {
+	if (!tool || !ToolComponent) {
 		notFound();
 	}
-
-	const ToolComponent = tool.component;
 
 	return (
 		<ToolLayout title={tool.name} description={tool.description}>

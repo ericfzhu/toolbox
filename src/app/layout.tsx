@@ -1,8 +1,8 @@
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
 
-import { ToastProvider } from '@/components/Toast';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
+import { ToastProvider } from '@/components/Toast';
 
 import './globals.css';
 
@@ -31,8 +31,8 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<head>
-				<link rel="icon" href="/icon.jpg" />
-				<link rel="apple-touch-icon" href="/icon.jpg" />
+				<link rel="icon" href="/icon.svg" />
+				<link rel="apple-touch-icon" href="/icon.svg" />
 			</head>
 			<body className={`${GeistMono.className} antialiased`}>
 				<ToastProvider>{children}</ToastProvider>

@@ -1,75 +1,57 @@
-const CACHE_NAME = 'toolbox-v1';
+const CACHE_NAME = 'toolbox-v2';
+const PRECACHE_URLS = ['/', '/icon.svg', '/manifest.json'];
 
-// Add all static assets and pages to cache
-const urlsToCache = [
-	'/',
-	'/icon.jpg',
-	'/manifest.json',
-];
-
-// Install event - cache static assets
 self.addEventListener('install', (event) => {
-	event.waitUntil(
-		caches.open(CACHE_NAME).then((cache) => {
-			return cache.addAll(urlsToCache);
-		})
-	);
+	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)));
 	self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
 	event.waitUntil(
-		caches.keys().then((cacheNames) => {
-			return Promise.all(
-				cacheNames
-					.filter((name) => name !== CACHE_NAME)
-					.map((name) => caches.delete(name))
-			);
-		})
+		caches.keys().then((cacheNames) => Promise.all(cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name)))),
 	);
 	self.clients.claim();
 });
 
-// Fetch event - serve from cache, fall back to network
-self.addEventListener('fetch', (event) => {
-	// Skip non-GET requests
-	if (event.request.method !== 'GET') return;
+function canCache(response) {
+	return response.ok && response.type === 'basic';
+}
 
-	// Skip cross-origin requests
-	if (!event.request.url.startsWith(self.location.origin)) return;
+async function cacheResponse(request, response) {
+	if (!canCache(response)) return;
+	const cache = await caches.open(CACHE_NAME);
+	await cache.put(request, response.clone());
+}
+
+self.addEventListener('fetch', (event) => {
+	const { request } = event;
+	if (request.method !== 'GET' || !request.url.startsWith(self.location.origin) || request.headers.has('range')) return;
+
+	if (request.mode === 'navigate') {
+		event.respondWith(
+			fetch(request)
+				.then((response) => {
+					event.waitUntil(cacheResponse(request, response));
+					return response;
+				})
+				.catch(async () => (await caches.match(request)) || (await caches.match('/'))),
+		);
+		return;
+	}
 
 	event.respondWith(
-		caches.match(event.request).then((cachedResponse) => {
-			// Return cached response if available
+		caches.match(request).then((cachedResponse) => {
+			const networkResponse = fetch(request).then((response) => {
+				event.waitUntil(cacheResponse(request, response));
+				return response;
+			});
+
 			if (cachedResponse) {
-				// Fetch and update cache in background
-				event.waitUntil(
-					fetch(event.request).then((response) => {
-						if (response.ok) {
-							caches.open(CACHE_NAME).then((cache) => {
-								cache.put(event.request, response);
-							});
-						}
-					}).catch(() => {})
-				);
+				event.waitUntil(networkResponse.catch(() => undefined));
 				return cachedResponse;
 			}
 
-			// Otherwise fetch from network and cache
-			return fetch(event.request).then((response) => {
-				if (!response.ok) return response;
-
-				const responseToCache = response.clone();
-				caches.open(CACHE_NAME).then((cache) => {
-					cache.put(event.request, responseToCache);
-				});
-
-				return response;
-			}).catch(() => {
-				// Return offline fallback if available
-				return caches.match('/');
-			});
-		})
+			return networkResponse;
+		}),
 	);
 });
