@@ -3,9 +3,27 @@
 import { IconDownload } from '@tabler/icons-react';
 import React, { useRef, useState } from 'react';
 
+function parseCssColor(value: string): { css: string; hex: string } | null {
+	if (!value.trim() || !CSS.supports('color', value)) return null;
+
+	const canvas = document.createElement('canvas');
+	canvas.width = 1;
+	canvas.height = 1;
+	const ctx = canvas.getContext('2d');
+	if (!ctx) return null;
+
+	ctx.fillStyle = value;
+	ctx.fillRect(0, 0, 1, 1);
+	const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+	const hex = `#${[r, g, b].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+	return { css: value, hex };
+}
+
 export default function SquareIconComponent() {
 	const [color, setColor] = useState('#BF5CFF');
+	const [pickerColor, setPickerColor] = useState('#BF5CFF');
 	const [inputValue, setInputValue] = useState('#BF5CFF');
+	const [colorError, setColorError] = useState(false);
 	const colorInputRef = useRef<HTMLInputElement>(null);
 
 	function downloadImage() {
@@ -28,24 +46,20 @@ export default function SquareIconComponent() {
 		const newValue = e.target.value;
 		setInputValue(newValue);
 
-		// Allow typing in the input field regardless of validity
-		const isValidHex = /^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
-		const isValidHsl = /^hsl\(\s*\d+\s*,\s*\d+%?\s*,\s*\d+%?\s*\)$/;
+		const parsed = parseCssColor(newValue);
+		setColorError(!parsed);
+		if (!parsed) return;
 
-		// Update color only if it's a valid format
-		if (isValidHex.test(newValue)) {
-			// Ensure hex color has # prefix
-			const formattedColor = newValue.startsWith('#') ? newValue : `#${newValue}`;
-			setColor(formattedColor);
-		} else if (isValidHsl.test(newValue)) {
-			setColor(newValue);
-		}
+		setColor(parsed.css);
+		setPickerColor(parsed.hex);
 	}
 
 	function handleColorPickerChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const newColor = e.target.value;
 		setColor(newColor);
+		setPickerColor(newColor);
 		setInputValue(newColor);
+		setColorError(false);
 	}
 
 	return (
@@ -57,9 +71,11 @@ export default function SquareIconComponent() {
 							type="text"
 							value={inputValue}
 							onChange={handleColorInputChange}
+							aria-invalid={colorError}
 							className="w-full rounded-2xl bg-white px-3 py-3 text-sm shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.28)]"
 							placeholder="Enter color (hex, rgb, hsl)"
 						/>
+						{colorError && <p className="text-xs text-red-600">Enter a valid CSS color.</p>}
 					</div>
 				</div>
 
@@ -68,7 +84,7 @@ export default function SquareIconComponent() {
 						<input
 							ref={colorInputRef}
 							type="color"
-							value={color}
+							value={pickerColor}
 							onChange={handleColorPickerChange}
 							className="absolute inset-0 h-full w-full cursor-pointer"
 						/>

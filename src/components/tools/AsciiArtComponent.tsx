@@ -275,7 +275,7 @@ export default function EnhancedAsciiArtComponent() {
 						const ctx = canvas.getContext('2d');
 						if (ctx) {
 							ctx.drawImage(img, 0, 0, width, height);
-							const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+							const resizedDataUrl = canvas.toDataURL('image/png');
 							setImageDimensions({ width, height });
 							setOriginalImage(resizedDataUrl);
 							return;

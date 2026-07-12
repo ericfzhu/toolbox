@@ -255,7 +255,7 @@ export default function DotPatternComponent() {
 					const ctx = canvas.getContext('2d');
 					if (ctx) {
 						ctx.drawImage(img, 0, 0, width, height);
-						setOriginalImage(canvas.toDataURL('image/jpeg', 0.9));
+						setOriginalImage(canvas.toDataURL('image/png'));
 						return;
 					}
 				}

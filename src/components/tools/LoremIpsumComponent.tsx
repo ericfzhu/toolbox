@@ -1,11 +1,11 @@
 'use client';
 
+import { useClipboard, useDownload } from '@/hooks';
 import { IconCopy, IconDownload } from '@tabler/icons-react';
 import { FormEvent, useState } from 'react';
 
-import { useClipboard, useDownload } from '@/hooks';
-
 type GeneratorType = 'paragraphs' | 'words';
+const MAX_COUNTS: Record<GeneratorType, number> = { paragraphs: 100, words: 10000 };
 
 const LOREM_WORDS = [
 	'lorem',
@@ -54,10 +54,7 @@ function generateLoremIpsum(type: GeneratorType, count: number): string {
 
 	return Array.from({ length: count }, () => {
 		const sentences = Array.from({ length: sentencesPerParagraph }, () => {
-			const sentence = Array.from(
-				{ length: wordsPerSentence },
-				() => LOREM_WORDS[Math.floor(Math.random() * LOREM_WORDS.length)],
-			).join(' ');
+			const sentence = Array.from({ length: wordsPerSentence }, () => LOREM_WORDS[Math.floor(Math.random() * LOREM_WORDS.length)]).join(' ');
 			return sentence.charAt(0).toUpperCase() + sentence.slice(1) + '.';
 		}).join(' ');
 		return sentences;
@@ -74,7 +71,7 @@ export default function LoremIpsumComponent() {
 
 	function handleSubmit(e: FormEvent) {
 		e.preventDefault();
-		const text = generateLoremIpsum(type, count);
+		const text = generateLoremIpsum(type, Math.min(count, MAX_COUNTS[type]));
 		setGeneratedText(text);
 	}
 
@@ -100,19 +97,22 @@ export default function LoremIpsumComponent() {
 						<div className="space-y-2">
 							<label className="block text-sm font-medium text-zinc-700">Type</label>
 							<div className="grid grid-cols-2 gap-2">
-							{(['paragraphs', 'words'] as const).map((typeOption) => (
-								<button
-									key={typeOption}
-									type="button"
-									onClick={() => setType(typeOption)}
-									className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium capitalize transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
-										type === typeOption
-											? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
-											: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
-									}`}>
-									{typeOption.charAt(0).toUpperCase() + typeOption.slice(1)}
-								</button>
-							))}
+								{(['paragraphs', 'words'] as const).map((typeOption) => (
+									<button
+										key={typeOption}
+										type="button"
+										onClick={() => {
+											setType(typeOption);
+											setCount((current) => Math.min(current, MAX_COUNTS[typeOption]));
+										}}
+										className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium capitalize transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+											type === typeOption
+												? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
+												: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
+										}`}>
+										{typeOption.charAt(0).toUpperCase() + typeOption.slice(1)}
+									</button>
+								))}
 							</div>
 						</div>
 
@@ -124,8 +124,9 @@ export default function LoremIpsumComponent() {
 								type="number"
 								id="count"
 								value={count}
-								onChange={(e) => setCount(Math.max(1, parseInt(e.target.value) || 1))}
+								onChange={(e) => setCount(Math.min(MAX_COUNTS[type], Math.max(1, parseInt(e.target.value) || 1)))}
 								min="1"
+								max={MAX_COUNTS[type]}
 								className="w-full rounded-2xl bg-white px-3 py-3 text-base tabular-nums shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.28)]"
 							/>
 						</div>

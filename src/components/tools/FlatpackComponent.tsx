@@ -80,6 +80,9 @@ const SKIP_DIRECTORIES = new Set([
 
 const SCAN_PROGRESS_INTERVAL = 50;
 const READ_BATCH_SIZE = 100;
+const MAX_FILE_COUNT = 5000;
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+const MAX_TOTAL_CHARACTERS = 20_000_000;
 
 const SENSITIVE_FILE_NAMES = new Set(['.env', '.npmrc', '.pypirc', '.netrc', 'credentials.json', 'service-account.json', 'id_rsa', 'id_ed25519']);
 const SENSITIVE_FILE_EXTENSIONS = new Set(['pem', 'key', 'p12', 'pfx', 'jks', 'keystore']);
@@ -125,6 +128,12 @@ interface ProcessFileOptions {
 	shouldAbort?: () => boolean;
 }
 
+interface ProcessResult {
+	completed: boolean;
+	limitReached: boolean;
+	skippedLargeFiles: number;
+}
+
 function countNewlines(text: string): number {
 	let count = 0;
 	for (let i = 0; i < text.length; i += 1) {
@@ -144,7 +153,7 @@ async function collectFileHandles(
 
 	try {
 		for await (const [name, handle] of (dirHandle as any).entries()) {
-			if (options.shouldAbort?.()) break;
+			if (options.shouldAbort?.() || files.length >= MAX_FILE_COUNT) break;
 
 			const fullPath = path ? `${path}/${name}` : name;
 
@@ -164,37 +173,59 @@ async function collectFileHandles(
 }
 
 // Process files in parallel batches for speed
-async function processFilesInBatches(files: FileEntry[], options: ProcessFileOptions = {}): Promise<boolean> {
+async function processFilesInBatches(files: FileEntry[], options: ProcessFileOptions = {}): Promise<ProcessResult> {
 	const batchSize = options.batchSize ?? READ_BATCH_SIZE;
 	let processed = 0;
+	let totalCharacters = 0;
+	let skippedLargeFiles = 0;
+	let limitReached = false;
 
 	for (let i = 0; i < files.length; i += batchSize) {
-		if (options.shouldAbort?.()) return false;
+		if (options.shouldAbort?.()) return { completed: false, limitReached, skippedLargeFiles };
 
 		const batch = files.slice(i, i + batchSize);
 
 		const batchResults = await Promise.all(
 			batch.map(async ({ path, handle }) => {
-				if (options.shouldAbort?.()) return '';
+				if (options.shouldAbort?.()) return { content: '', skippedLarge: false };
 
 				try {
 					const file = await handle.getFile();
+					if (file.size > MAX_FILE_SIZE) return { content: '', skippedLarge: true };
 					const text = await file.text();
-					return `// File: ${path}\n\n${text}\n\n`;
+					return { content: `// File: ${path}\n\n${text}\n\n`, skippedLarge: false };
 				} catch (error) {
 					console.error('Error reading file:', path, error);
-					return '';
+					return { content: '', skippedLarge: false };
 				}
 			}),
 		);
 
-		if (options.shouldAbort?.()) return false;
+		if (options.shouldAbort?.()) return { completed: false, limitReached, skippedLargeFiles };
+
+		let batchContent = '';
+		for (const result of batchResults) {
+			if (result.skippedLarge) skippedLargeFiles++;
+			if (!result.content) continue;
+
+			const remainingCharacters = MAX_TOTAL_CHARACTERS - totalCharacters;
+			if (result.content.length > remainingCharacters) {
+				batchContent += result.content.slice(0, Math.max(0, remainingCharacters));
+				totalCharacters = MAX_TOTAL_CHARACTERS;
+				limitReached = true;
+				break;
+			}
+
+			batchContent += result.content;
+			totalCharacters += result.content.length;
+		}
 
 		processed += batch.length;
-		options.onBatch?.(batchResults.filter(Boolean).join(''), processed, files.length);
+		options.onBatch?.(batchContent, processed, files.length);
+		if (limitReached) break;
 	}
 
-	return true;
+	return { completed: true, limitReached, skippedLargeFiles };
 }
 
 interface ProcessingStatus {
@@ -240,6 +271,7 @@ export default function CodeAggregatorComponent() {
 					setStatus((prev) => (prev ? { ...prev, scannedFiles: scanned } : null));
 				},
 			});
+			const fileLimitReached = files.length >= MAX_FILE_COUNT;
 
 			if (abortRef.current) return;
 
@@ -253,7 +285,7 @@ export default function CodeAggregatorComponent() {
 			setStatus({ phase: 'reading', scannedFiles: files.length, processedFiles: 0, totalFiles: files.length });
 
 			// Phase 2: Read file contents in parallel batches and append each batch as it finishes.
-			const completed = await processFilesInBatches(files, {
+			const result = await processFilesInBatches(files, {
 				batchSize: READ_BATCH_SIZE,
 				shouldAbort: () => abortRef.current,
 				onBatch: (batchContent, processed, total) => {
@@ -268,9 +300,17 @@ export default function CodeAggregatorComponent() {
 				},
 			});
 
-			if (abortRef.current || !completed) return;
+			if (abortRef.current || !result.completed) return;
 
 			setStatus({ phase: 'done', scannedFiles: files.length, processedFiles: files.length, totalFiles: files.length });
+			if (fileLimitReached || result.limitReached || result.skippedLargeFiles > 0) {
+				const messages = [
+					fileLimitReached ? `Only the first ${MAX_FILE_COUNT.toLocaleString()} code files were included.` : '',
+					result.limitReached ? 'Output was capped at 20 million characters.' : '',
+					result.skippedLargeFiles > 0 ? `${result.skippedLargeFiles} files larger than 2 MB were skipped.` : '',
+				].filter(Boolean);
+				alert(messages.join('\n'));
+			}
 		} catch (error: any) {
 			if (error.name !== 'AbortError') {
 				console.error('Error accessing files:', error);

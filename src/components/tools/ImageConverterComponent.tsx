@@ -10,9 +10,22 @@ interface ImageDimensions {
 }
 
 const MAX_IMAGE_DIMENSION = 4096;
+const MAX_OUTPUT_DIMENSION = 8192;
+const MAX_OUTPUT_PIXELS = 32000000;
 const IMAGE_FORMATS = ['png', 'webp', 'jpeg'] as const;
 
 type ImageFormat = (typeof IMAGE_FORMATS)[number];
+
+function constrainDimensions(dimensions: ImageDimensions): ImageDimensions {
+	const maxDimensionScale = Math.min(1, MAX_OUTPUT_DIMENSION / Math.max(dimensions.width, dimensions.height));
+	const pixelScale = Math.min(1, Math.sqrt(MAX_OUTPUT_PIXELS / (dimensions.width * dimensions.height)));
+	const scale = Math.min(maxDimensionScale, pixelScale);
+
+	return {
+		width: Math.max(1, Math.round(dimensions.width * scale)),
+		height: Math.max(1, Math.round(dimensions.height * scale)),
+	};
+}
 
 export default function ImageConverterComponent() {
 	const [isImageDragging, setIsImageDragging] = useState<boolean>(false);
@@ -62,16 +75,16 @@ export default function ImageConverterComponent() {
 
 			setImageDimensions(() => {
 				if (activeDimension === 'width') {
-					return {
+					return constrainDimensions({
 						width: newValue,
 						height: Math.round(newValue / aspectRatio),
-					};
+					});
 				}
 
-				return {
+				return constrainDimensions({
 					width: Math.round(newValue * aspectRatio),
 					height: newValue,
-				};
+				});
 			});
 
 			setDragStartY(e.clientY);
@@ -131,16 +144,16 @@ export default function ImageConverterComponent() {
 
 		setImageDimensions(() => {
 			if (dimension === 'width') {
-				return {
+				return constrainDimensions({
 					width: value,
 					height: Math.round(value / aspectRatio),
-				};
+				});
 			}
 
-			return {
+			return constrainDimensions({
 				width: Math.round(value * aspectRatio),
 				height: value,
-			};
+			});
 		});
 	}
 
@@ -189,7 +202,9 @@ export default function ImageConverterComponent() {
 			<div className="w-full max-w-sm space-y-4 lg:sticky lg:top-8 lg:w-80 lg:self-start">
 				<div
 					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
-						isImageDragging ? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]' : 'bg-white'
+						isImageDragging
+							? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]'
+							: 'bg-white'
 					}`}
 					onDragOver={handleImageDragOver}
 					onDragLeave={handleImageDragLeave}
@@ -232,7 +247,9 @@ export default function ImageConverterComponent() {
 						<div className="space-y-3">
 							<label className="block text-sm font-medium text-zinc-900">Dimensions</label>
 							{(['width', 'height'] as const).map((dimension) => (
-								<div key={dimension} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+								<div
+									key={dimension}
+									className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 									<span className="text-sm capitalize text-zinc-600">{dimension}</span>
 									<div className="flex items-center">
 										<input
@@ -240,6 +257,8 @@ export default function ImageConverterComponent() {
 											value={imageDimensions[dimension]}
 											onChange={(e) => handleDimensionChange(dimension, parseInt(e.target.value))}
 											disabled={!originalImage}
+											min={1}
+											max={MAX_OUTPUT_DIMENSION}
 											className="w-24 bg-transparent text-right text-sm tabular-nums text-zinc-900 focus:outline-none disabled:text-zinc-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
 										/>
 										<div

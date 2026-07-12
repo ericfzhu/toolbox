@@ -23,7 +23,7 @@ interface UseImageUploadReturn {
 }
 
 export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUploadReturn {
-	const { maxDimension = 4096 } = options;
+	const { maxDimension = 4096, onImageLoad } = options;
 	const [image, setImage] = useState<string | null>(null);
 	const [dimensions, setDimensions] = useState<ImageDimensions | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
@@ -63,11 +63,11 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
 						const ctx = canvas.getContext('2d');
 						if (ctx) {
 							ctx.drawImage(img, 0, 0, width, height);
-							const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+							const resizedDataUrl = canvas.toDataURL('image/png');
 							const dims = { width, height };
 							setImage(resizedDataUrl);
 							setDimensions(dims);
-							options.onImageLoad?.(resizedDataUrl, dims);
+							onImageLoad?.(resizedDataUrl, dims);
 							return;
 						}
 					}
@@ -75,13 +75,13 @@ export function useImageUpload(options: UseImageUploadOptions = {}): UseImageUpl
 					const dims = { width: img.width, height: img.height };
 					setImage(dataUrl);
 					setDimensions(dims);
-					options.onImageLoad?.(dataUrl, dims);
+					onImageLoad?.(dataUrl, dims);
 				};
 				img.src = dataUrl;
 			};
 			reader.readAsDataURL(file);
 		},
-		[options, maxDimension],
+		[maxDimension, onImageLoad],
 	);
 
 	const handleFileChange = useCallback(

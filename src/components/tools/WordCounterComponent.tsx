@@ -1,25 +1,32 @@
 'use client';
 
 import { Courier_Prime } from 'next/font/google';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
 const courier_prime = Courier_Prime({ subsets: ['latin'], weight: '400' });
 
+function countWords(text: string): number {
+	if (!text.trim()) return 0;
+	if (typeof Intl.Segmenter === 'function') {
+		const segmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
+		return Array.from(segmenter.segment(text)).filter((segment) => segment.isWordLike).length;
+	}
+	return text.trim().split(/\s+/).length;
+}
+
+function countCharacters(text: string): number {
+	if (typeof Intl.Segmenter === 'function') {
+		return Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text)).length;
+	}
+	return Array.from(text).length;
+}
+
 export default function WordCounterComponent() {
 	const [text, setText] = useState('');
 
-	function countWords(str: string) {
-		return str
-			.trim()
-			.split(/\s+/)
-			.filter((word) => word !== '').length;
-	}
-
-	function countCharacters(str: string) {
-		return str.length;
-	}
+	const counts = useMemo(() => ({ words: countWords(text), characters: countCharacters(text) }), [text]);
 
 	return (
 		<div className="flex items-center justify-center">
@@ -35,8 +42,8 @@ export default function WordCounterComponent() {
 						'pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none px-5 py-4 text-4xl text-[#4647F1] opacity-70 sm:text-5xl md:text-7xl',
 						courier_prime.className,
 					)}>
-					<p className="tabular-nums">W {countWords(text)}</p>
-					<p className="tabular-nums">C {countCharacters(text)}</p>
+					<p className="tabular-nums">W {counts.words}</p>
+					<p className="tabular-nums">C {counts.characters}</p>
 				</div>
 			</div>
 		</div>

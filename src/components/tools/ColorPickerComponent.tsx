@@ -1,9 +1,9 @@
 'use client';
 
+import { useClipboard, useImageUpload } from '@/hooks';
 import { IconChevronDown, IconChevronUp, IconCopy, IconDownload, IconPalette, IconX } from '@tabler/icons-react';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useClipboard, useImageUpload } from '@/hooks';
 import { colorDistance, formatHsl, formatRgb, hexToRgb, rgbToHex, rgbToHsl } from '@/lib/color';
 
 interface Color {
@@ -54,17 +54,26 @@ export default function ColorPickerComponent() {
 	}, []);
 
 	function getPalette(imageData: ImageData, colorCount: number = 5, quality: number = 10): [number, number, number][] {
+		const maxSamples = 20000;
+		const totalPixels = imageData.data.length / 4;
+		const sampleStride = Math.max(quality, Math.ceil(totalPixels / maxSamples));
 		const pixels: [number, number, number][] = [];
-		for (let i = 0; i < imageData.data.length; i += 4 * quality) {
+		for (let i = 0; i < imageData.data.length; i += 4 * sampleStride) {
+			if (imageData.data[i + 3] < 128) continue;
 			pixels.push([imageData.data[i], imageData.data[i + 1], imageData.data[i + 2]]);
 		}
+		if (pixels.length === 0) return [[255, 255, 255]];
 
-		// Initialize centroids randomly
-		let centroids: [number, number, number][] = pixels.slice(0, colorCount);
+		const centroidCount = Math.min(colorCount, pixels.length);
+		let centroids = Array.from(
+			{ length: centroidCount },
+			(_, index) => [...pixels[Math.floor((index * pixels.length) / centroidCount)]] as [number, number, number],
+		);
 
-		for (let iteration = 0; iteration < 20; iteration++) {
-			// Assign pixels to centroids
-			const clusters: [number, number, number][][] = Array.from({ length: colorCount }, () => []);
+		for (let iteration = 0; iteration < 12; iteration++) {
+			const sums = Array.from({ length: centroidCount }, () => [0, 0, 0] as [number, number, number]);
+			const counts = new Uint32Array(centroidCount);
+
 			for (const pixel of pixels) {
 				let nearestCentroidIndex = 0;
 				let minDistance = Infinity;
@@ -75,21 +84,22 @@ export default function ColorPickerComponent() {
 						nearestCentroidIndex = i;
 					}
 				}
-				clusters[nearestCentroidIndex].push(pixel);
+				sums[nearestCentroidIndex][0] += pixel[0];
+				sums[nearestCentroidIndex][1] += pixel[1];
+				sums[nearestCentroidIndex][2] += pixel[2];
+				counts[nearestCentroidIndex]++;
 			}
 
-			// Update centroids
 			const newCentroids: [number, number, number][] = centroids.map((_, i) => {
-				if (clusters[i].length === 0) return centroids[i];
-				const sum = clusters[i].reduce((acc, pixel) => [acc[0] + pixel[0], acc[1] + pixel[1], acc[2] + pixel[2]]);
-				return [Math.round(sum[0] / clusters[i].length), Math.round(sum[1] / clusters[i].length), Math.round(sum[2] / clusters[i].length)];
+				if (counts[i] === 0) return centroids[i];
+				return [Math.round(sums[i][0] / counts[i]), Math.round(sums[i][1] / counts[i]), Math.round(sums[i][2] / counts[i])];
 			});
 
-			// Check for convergence
-			if (JSON.stringify(newCentroids) === JSON.stringify(centroids)) {
-				break;
-			}
+			const converged = newCentroids.every((centroid, index) =>
+				centroid.every((channel, channelIndex) => channel === centroids[index][channelIndex]),
+			);
 			centroids = newCentroids;
+			if (converged) break;
 		}
 
 		return centroids;
@@ -146,13 +156,8 @@ export default function ColorPickerComponent() {
 			.sort((a, b) => a.distance - b.distance);
 
 		// Select 4 colors: closest, farthest, and two in between
-		const harmonicPalette = [
-			selectedRgb,
-			sortedPalette[1].color,
-			sortedPalette[Math.floor(sortedPalette.length / 3)].color,
-			sortedPalette[Math.floor((2 * sortedPalette.length) / 3)].color,
-			sortedPalette[sortedPalette.length - 1].color,
-		];
+		const paletteAt = (ratio: number) => sortedPalette[Math.min(sortedPalette.length - 1, Math.floor(ratio * (sortedPalette.length - 1)))].color;
+		const harmonicPalette = [selectedRgb, paletteAt(0.1), paletteAt(1 / 3), paletteAt(2 / 3), paletteAt(1)];
 
 		const hexPalette = harmonicPalette.map((color) => rgbToHex(...color));
 
@@ -165,6 +170,8 @@ export default function ColorPickerComponent() {
 
 	useEffect(() => {
 		if (image && canvasRef.current) {
+			setSelectedColors([]);
+			setMagnifierPosition(null);
 			const canvas = canvasRef.current;
 			const ctx = canvas.getContext('2d');
 			if (!ctx) return;
@@ -192,8 +199,7 @@ export default function ColorPickerComponent() {
 		const newCtx = newCanvas.getContext('2d');
 		if (!newCtx) return;
 
-		const squareSize = Math.floor(imageDimensions.width / 5);
-		const paletteHeight = squareSize;
+		const paletteHeight = Math.max(1, Math.floor(imageDimensions.width / palette.length));
 
 		newCanvas.width = imageDimensions.width;
 		newCanvas.height = imageDimensions.height + paletteHeight;
@@ -201,8 +207,10 @@ export default function ColorPickerComponent() {
 		newCtx.drawImage(canvas, 0, 0);
 
 		palette.forEach((color, index) => {
+			const startX = Math.floor((index * imageDimensions.width) / palette.length);
+			const endX = Math.floor(((index + 1) * imageDimensions.width) / palette.length);
 			newCtx.fillStyle = color;
-			newCtx.fillRect(index * squareSize, imageDimensions.height, squareSize, squareSize);
+			newCtx.fillRect(startX, imageDimensions.height, endX - startX, paletteHeight);
 		});
 
 		const link = document.createElement('a');
@@ -232,7 +240,9 @@ export default function ColorPickerComponent() {
 			<div className="order-2 w-full max-w-sm space-y-4 md:order-1 md:w-80">
 				<div
 					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
-						isDragging ? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]' : 'bg-white'
+						isDragging
+							? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]'
+							: 'bg-white'
 					}`}
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
@@ -256,63 +266,65 @@ export default function ColorPickerComponent() {
 						key={index}
 						className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 						<div className="rounded-[20px] bg-zinc-50 p-4">
-						<div className="relative mb-3 flex items-center justify-between">
-							<div className="h-14 w-full rounded-2xl shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]" style={{ backgroundColor: color.rgb }}></div>
-							<button
-								onClick={() => setSelectedColors((colors) => colors.filter((_, i) => i !== index))}
-								className="absolute right-2 top-2 inline-flex min-h-10 min-w-10 items-center justify-center rounded-full bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]"
-								aria-label="Remove color">
-								<IconX size={14} />
-							</button>
-						</div>
-						<div className="space-y-1 text-sm">
-							{['rgb', 'hex', 'hsl'].map((format) => (
+							<div className="relative mb-3 flex items-center justify-between">
+								<div
+									className="h-14 w-full rounded-2xl shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]"
+									style={{ backgroundColor: color.rgb }}></div>
 								<button
-									key={format}
-									className="flex min-h-11 w-full items-center rounded-2xl bg-white px-2 py-2 text-left shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.98]"
-									onClick={() => copyToClipboard(color[format as keyof Color])}>
-									<span className="w-10 uppercase text-zinc-500">{format}</span>
-									<span className="flex-grow font-mono text-zinc-700">{color[format as keyof Color]}</span>
-									<IconCopy size={14} className="text-zinc-400" />
-								</button>
-							))}
-						</div>
-						<div className="mt-3">
-							<button
-								onClick={() => (color.palette.length ? togglePalette(index) : generatePalette(index))}
-								className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
-								<IconPalette size={16} className="mr-2" />
-								{color.palette.length ? (color.showPalette ? 'Hide' : 'Show') : 'Generate'} Palette
-								{color.palette.length > 0 &&
-									(color.showPalette ? (
-										<IconChevronUp size={16} className="ml-2" />
-									) : (
-										<IconChevronDown size={16} className="ml-2" />
-									))}
-							</button>
-						</div>
-						{color.showPalette && (
-							<div className="mt-3 space-y-3">
-								<div className="flex space-x-2">
-									{color.palette.map((paletteColor, i) => (
-										<button
-											key={i}
-											className="h-10 w-10 rounded-2xl cursor-pointer shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,box-shadow] duration-200 ease-out hover:scale-110 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
-											style={{ backgroundColor: paletteColor }}
-											title={`Click to copy: ${paletteColor}`}
-											onClick={() => copyToClipboard(paletteColor)}
-										/>
-									))}
-								</div>
-								<button
-									onClick={() => downloadImageWithPalette(color.palette)}
-									className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
-									<IconDownload size={16} />
-									<span>Download with Palette</span>
+									onClick={() => setSelectedColors((colors) => colors.filter((_, i) => i !== index))}
+									className="absolute right-2 top-2 inline-flex min-h-10 min-w-10 items-center justify-center rounded-full bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]"
+									aria-label="Remove color">
+									<IconX size={14} />
 								</button>
 							</div>
-						)}
-					</div>
+							<div className="space-y-1 text-sm">
+								{['rgb', 'hex', 'hsl'].map((format) => (
+									<button
+										key={format}
+										className="flex min-h-11 w-full items-center rounded-2xl bg-white px-2 py-2 text-left shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.98]"
+										onClick={() => copyToClipboard(color[format as keyof Color])}>
+										<span className="w-10 uppercase text-zinc-500">{format}</span>
+										<span className="flex-grow font-mono text-zinc-700">{color[format as keyof Color]}</span>
+										<IconCopy size={14} className="text-zinc-400" />
+									</button>
+								))}
+							</div>
+							<div className="mt-3">
+								<button
+									onClick={() => (color.palette.length ? togglePalette(index) : generatePalette(index))}
+									className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
+									<IconPalette size={16} className="mr-2" />
+									{color.palette.length ? (color.showPalette ? 'Hide' : 'Show') : 'Generate'} Palette
+									{color.palette.length > 0 &&
+										(color.showPalette ? (
+											<IconChevronUp size={16} className="ml-2" />
+										) : (
+											<IconChevronDown size={16} className="ml-2" />
+										))}
+								</button>
+							</div>
+							{color.showPalette && (
+								<div className="mt-3 space-y-3">
+									<div className="flex space-x-2">
+										{color.palette.map((paletteColor, i) => (
+											<button
+												key={i}
+												className="h-10 w-10 rounded-2xl cursor-pointer shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,box-shadow] duration-200 ease-out hover:scale-110 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
+												style={{ backgroundColor: paletteColor }}
+												title={`Click to copy: ${paletteColor}`}
+												onClick={() => copyToClipboard(paletteColor)}
+											/>
+										))}
+									</div>
+									<button
+										onClick={() => downloadImageWithPalette(color.palette)}
+										className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
+										<IconDownload size={16} />
+										<span>Download with Palette</span>
+									</button>
+								</div>
+							)}
+						</div>
 					</div>
 				))}
 			</div>
@@ -327,7 +339,9 @@ export default function ColorPickerComponent() {
 				</div>
 			) : (
 				<div className="flex-1 flex flex-col items-center order-1 md:order-2">
-					<div className="relative w-full rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]" style={{ maxHeight: '50vh' }}>
+					<div
+						className="relative w-full rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]"
+						style={{ maxHeight: '50vh' }}>
 						<canvas
 							ref={canvasRef}
 							onClick={handleImageClick}

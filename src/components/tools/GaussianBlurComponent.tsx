@@ -234,6 +234,18 @@ function createWebGLBlurRenderer(canvas: HTMLCanvasElement): WebGLBlurRenderer {
 	};
 }
 
+function renderCanvasBlur(image: HTMLImageElement, radius: number, sigma: number): HTMLCanvasElement {
+	const canvas = document.createElement('canvas');
+	canvas.width = image.width;
+	canvas.height = image.height;
+	const ctx = canvas.getContext('2d');
+	if (!ctx) throw new Error('Canvas 2D is not available.');
+
+	ctx.filter = `blur(${Math.max(radius, sigma)}px)`;
+	ctx.drawImage(image, 0, 0);
+	return canvas;
+}
+
 export default function GaussianBlurComponent(): React.JSX.Element {
 	const [radius, setRadius] = useState<number>(2);
 	const [sigma, setSigma] = useState<number>(5);
@@ -296,9 +308,8 @@ export default function GaussianBlurComponent(): React.JSX.Element {
 			return;
 		}
 
-		const renderer = rendererRef.current;
 		const canvas = renderCanvasRef.current;
-		if (!renderer || !canvas) {
+		if (!canvas) {
 			setIsProcessing(false);
 			return;
 		}
@@ -311,17 +322,27 @@ export default function GaussianBlurComponent(): React.JSX.Element {
 
 		img.onload = () => {
 			if (requestId !== latestRequestIdRef.current) return;
+			let outputCanvas = canvas;
 
 			try {
-				renderer.render(img, appliedRadius, appliedSigma);
+				if (rendererRef.current) {
+					try {
+						rendererRef.current.render(img, appliedRadius, appliedSigma);
+					} catch (error) {
+						console.warn('WebGL blur failed; using Canvas 2D fallback.', error);
+						outputCanvas = renderCanvasBlur(img, appliedRadius, appliedSigma);
+					}
+				} else {
+					outputCanvas = renderCanvasBlur(img, appliedRadius, appliedSigma);
+				}
 			} catch (error) {
-				console.error('Error applying WebGL blur:', error);
+				console.error('Unable to render blur.', error);
 				setIsProcessing(false);
 				return;
 			}
 
 			requestAnimationFrame(() => {
-				canvas.toBlob((blob) => {
+				outputCanvas.toBlob((blob) => {
 					if (requestId !== latestRequestIdRef.current) return;
 					if (!blob) {
 						setIsProcessing(false);

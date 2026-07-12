@@ -126,6 +126,9 @@ interface DiffLine {
 }
 
 const MAX_EXACT_EDIT_DISTANCE = 2000;
+const MAX_HIGHLIGHTED_LINES = 5000;
+const MAX_MINIMAP_LINES = 300;
+const diffRowStyle = { contentVisibility: 'auto', containIntrinsicSize: '22px' } as const;
 
 function buildPrefixSuffixDiff(oldLines: string[], newLines: string[]): DiffLine[] {
 	const result: DiffLine[] = [];
@@ -196,7 +199,7 @@ function backtrackMyersDiff(trace: Int32Array[], oldLines: string[], newLines: s
 		const prevY = prevX - prevK;
 
 		while (x > prevX && y > prevY) {
-			result.unshift({
+			result.push({
 				type: 'unchanged',
 				content: oldLines[x - 1],
 				oldLineNum: x,
@@ -208,13 +211,13 @@ function backtrackMyersDiff(trace: Int32Array[], oldLines: string[], newLines: s
 
 		if (d > 0) {
 			if (x === prevX) {
-				result.unshift({
+				result.push({
 					type: 'added',
 					content: newLines[prevY],
 					newLineNum: prevY + 1,
 				});
 			} else {
-				result.unshift({
+				result.push({
 					type: 'removed',
 					content: oldLines[prevX],
 					oldLineNum: prevX + 1,
@@ -226,7 +229,13 @@ function backtrackMyersDiff(trace: Int32Array[], oldLines: string[], newLines: s
 		y = prevY;
 	}
 
-	return result;
+	return result.reverse();
+}
+
+function sampleLines(lines: DiffLine[], limit: number = MAX_MINIMAP_LINES): DiffLine[] {
+	if (lines.length <= limit) return lines;
+
+	return Array.from({ length: limit }, (_, index) => lines[Math.floor((index * lines.length) / limit)]);
 }
 
 function computeExactDiff(oldLines: string[], newLines: string[]): DiffLine[] | null {
@@ -400,8 +409,8 @@ function Minimap({ diffResult, viewMode, scrollContainerRef, secondScrollContain
 	if (totalLines === 0) return null;
 
 	// Split lines into left (original) and right (modified) columns
-	const leftLines = diffResult.filter((line) => line.type !== 'added'); // removed + unchanged
-	const rightLines = diffResult.filter((line) => line.type !== 'removed'); // added + unchanged
+	const leftLines = sampleLines(diffResult.filter((line) => line.type !== 'added')); // removed + unchanged
+	const rightLines = sampleLines(diffResult.filter((line) => line.type !== 'removed')); // added + unchanged
 
 	const leftLineHeightPercent = leftLines.length > 0 ? 100 / leftLines.length : 100;
 	const rightLineHeightPercent = rightLines.length > 0 ? 100 / rightLines.length : 100;
@@ -486,7 +495,8 @@ export default function DiffCheckerComponent() {
 	const highlightedLines = useMemo(() => {
 		return diffResult.map((line) => ({
 			...line,
-			highlightedContent: highlightCode(line.content, effectiveLanguage),
+			highlightedContent:
+				diffResult.length <= MAX_HIGHLIGHTED_LINES ? highlightCode(line.content, effectiveLanguage) : escapeHtml(line.content),
 		}));
 	}, [diffResult, effectiveLanguage]);
 
@@ -645,7 +655,7 @@ export default function DiffCheckerComponent() {
 										{highlightedLines.map((line, idx) => {
 											if (line.type === 'added') return null;
 											return (
-												<div key={idx} className={`flex ${line.type === 'removed' ? 'bg-red-100' : ''}`}>
+												<div key={idx} style={diffRowStyle} className={`flex ${line.type === 'removed' ? 'bg-red-100' : ''}`}>
 													<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 														{line.oldLineNum || ''}
 													</span>
@@ -673,7 +683,7 @@ export default function DiffCheckerComponent() {
 										{highlightedLines.map((line, idx) => {
 											if (line.type === 'removed') return null;
 											return (
-												<div key={idx} className={`flex ${line.type === 'added' ? 'bg-green-100' : ''}`}>
+												<div key={idx} style={diffRowStyle} className={`flex ${line.type === 'added' ? 'bg-green-100' : ''}`}>
 													<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 														{line.newLineNum || ''}
 													</span>
@@ -695,6 +705,7 @@ export default function DiffCheckerComponent() {
 								{highlightedLines.map((line, idx) => (
 									<div
 										key={idx}
+										style={diffRowStyle}
 										className={`flex ${line.type === 'added' ? 'bg-green-100' : line.type === 'removed' ? 'bg-red-100' : ''}`}>
 										<span className="w-12 flex-shrink-0 select-none bg-zinc-50 px-2 py-0.5 text-right text-zinc-400 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 											{line.oldLineNum || ''}
