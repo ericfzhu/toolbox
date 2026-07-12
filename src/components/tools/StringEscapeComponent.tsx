@@ -4,7 +4,7 @@ import { useClipboard, useDownload } from '@/hooks';
 import { IconCopy, IconDownload } from '@tabler/icons-react';
 import React, { useMemo, useState } from 'react';
 
-type EscapeTarget = 'json' | 'javascript' | 'template' | 'html';
+import { EscapeTarget, escapeString } from '@/lib/toolAlgorithms';
 
 const ESCAPE_TARGETS: { value: EscapeTarget; label: string }[] = [
 	{ value: 'json', label: 'JSON string' },
@@ -12,25 +12,6 @@ const ESCAPE_TARGETS: { value: EscapeTarget; label: string }[] = [
 	{ value: 'template', label: 'Template literal' },
 	{ value: 'html', label: 'HTML text' },
 ];
-
-function escapeJsonString(value: string): string {
-	return JSON.stringify(value).slice(1, -1);
-}
-
-function escapeString(value: string, target: EscapeTarget): string {
-	switch (target) {
-		case 'json':
-			return escapeJsonString(value);
-		case 'javascript':
-			return escapeJsonString(value)
-				.replace(/\u2028/g, '\\u2028')
-				.replace(/\u2029/g, '\\u2029');
-		case 'template':
-			return value.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
-		case 'html':
-			return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-	}
-}
 
 export default function StringEscapeComponent() {
 	const [input, setInput] = useState('');

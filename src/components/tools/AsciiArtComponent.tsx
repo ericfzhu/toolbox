@@ -1,6 +1,6 @@
 'use client';
 
-import { Download } from 'lucide-react';
+import { IconDownload } from '@tabler/icons-react';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -816,7 +816,7 @@ export default function EnhancedAsciiArtComponent() {
 							<button
 								onClick={() => handleDownload('txt')}
 								className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
-								<Download size={18} />
+								<IconDownload size={18} />
 								<span>TXT</span>
 							</button>
 							<div className="grid grid-cols-2 gap-2">
@@ -830,7 +830,7 @@ export default function EnhancedAsciiArtComponent() {
 										key={type}
 										onClick={() => handleDownload(type as 'txt' | 'jpg-bw' | 'jpg-color' | 'webp-bw' | 'webp-color')}
 										className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
-										<Download size={18} />
+										<IconDownload size={18} />
 										<span>{label}</span>
 									</button>
 								))}

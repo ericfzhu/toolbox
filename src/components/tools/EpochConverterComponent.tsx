@@ -4,15 +4,9 @@ import { useClipboard } from '@/hooks';
 import { IconCopy, IconRefresh } from '@tabler/icons-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { parseTimestamp } from '@/lib/toolAlgorithms';
+
 type TimestampUnit = 'seconds' | 'milliseconds';
-
-function parseTimestamp(input: string): number | null {
-	const trimmed = input.trim();
-	if (!/^[+-]?\d+$/.test(trimmed)) return null;
-
-	const value = Number(trimmed);
-	return Number.isSafeInteger(value) ? value : null;
-}
 
 export default function EpochConverterComponent() {
 	const [epochInput, setEpochInput] = useState('');

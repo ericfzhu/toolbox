@@ -4,6 +4,8 @@ import { useClipboard, useDownload } from '@/hooks';
 import { IconCopy, IconDownload } from '@tabler/icons-react';
 import { useCallback, useRef, useState } from 'react';
 
+import { isSensitiveFile } from '@/lib/toolAlgorithms';
+
 const CODE_FILE_EXTENSIONS = new Set([
 	'js',
 	'jsx',
@@ -83,17 +85,6 @@ const READ_BATCH_SIZE = 100;
 const MAX_FILE_COUNT = 5000;
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 const MAX_TOTAL_CHARACTERS = 20_000_000;
-
-const SENSITIVE_FILE_NAMES = new Set(['.env', '.npmrc', '.pypirc', '.netrc', 'credentials.json', 'service-account.json', 'id_rsa', 'id_ed25519']);
-const SENSITIVE_FILE_EXTENSIONS = new Set(['pem', 'key', 'p12', 'pfx', 'jks', 'keystore']);
-
-function isSensitiveFile(fileName: string): boolean {
-	const lowerName = fileName.toLowerCase();
-	if (SENSITIVE_FILE_NAMES.has(lowerName) || lowerName.startsWith('.env.')) return true;
-
-	const extension = lowerName.split('.').pop();
-	return extension ? SENSITIVE_FILE_EXTENSIONS.has(extension) : false;
-}
 
 function isCodeFile(fileName: string): boolean {
 	const lowerName = fileName.toLowerCase();

@@ -118,7 +118,7 @@ const highlightStyles = `
 }
 `;
 
-interface DiffLine {
+export interface DiffLine {
 	type: 'added' | 'removed' | 'unchanged' | 'header';
 	content: string;
 	oldLineNum?: number;
@@ -273,7 +273,7 @@ function computeExactDiff(oldLines: string[], newLines: string[]): DiffLine[] | 
 	return null;
 }
 
-function computeDiff(oldText: string, newText: string): DiffLine[] {
+export function computeDiff(oldText: string, newText: string): DiffLine[] {
 	const oldLines = oldText.split('\n');
 	const newLines = newText.split('\n');
 
