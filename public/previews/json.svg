@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
+  <title id="title">Infinite nested folders</title>
+  <desc id="description">A tunnel of glossy blue folders representing deeply nested JSON data.</desc>
+  <defs>
+    <radialGradient id="background" cx="50%" cy="32%" r="72%">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset=".55" stop-color="#f7f7f8"/>
+      <stop offset="1" stop-color="#e4e4e8"/>
+    </radialGradient>
+    <linearGradient id="outer" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#82cfff"/><stop offset=".52" stop-color="#43a8f3"/><stop offset="1" stop-color="#1679d2"/>
+    </linearGradient>
+    <linearGradient id="middle" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#9ddaff"/><stop offset=".55" stop-color="#56b4f6"/><stop offset="1" stop-color="#2589dc"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#b7e4ff"/><stop offset=".58" stop-color="#6fc1f7"/><stop offset="1" stop-color="#3294dd"/>
+    </linearGradient>
+    <linearGradient id="core" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#cbecff"/><stop offset="1" stop-color="#62b8ed"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fff" stop-opacity=".5"/><stop offset=".45" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <path id="folder" d="M164 198h180c14 0 20 8 28 20l32 44h456c32 0 48 16 48 40v436c0 32-16 48-48 48H164c-32 0-48-16-48-48V246c0-32 16-48 48-48Z"/>
+    <g id="folder-sheen">
+      <use href="#folder" fill="url(#shine)"/>
+      <path d="M142 304h740" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="3"/>
+    </g>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#background)"/>
+  <g transform="translate(512 512) scale(2.05) translate(-512 -512)" stroke="#0867b4" stroke-opacity=".62" stroke-width="5" stroke-linejoin="round">
+    <g><use href="#folder" fill="url(#outer)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.78) translate(-512 -512)"><use href="#folder" fill="url(#middle)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.6084) translate(-512 -512)"><use href="#folder" fill="url(#inner)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.474552) translate(-512 -512)"><use href="#folder" fill="url(#core)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.370151) translate(-512 -512)"><use href="#folder" fill="url(#outer)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.288717) translate(-512 -512)"><use href="#folder" fill="url(#middle)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.2252) translate(-512 -512)"><use href="#folder" fill="url(#inner)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.175656) translate(-512 -512)"><use href="#folder" fill="url(#core)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.137011) translate(-512 -512)"><use href="#folder" fill="url(#outer)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.106869) translate(-512 -512)"><use href="#folder" fill="url(#middle)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.083358) translate(-512 -512)"><use href="#folder" fill="url(#inner)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.065019) translate(-512 -512)"><use href="#folder" fill="url(#core)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.050715) translate(-512 -512)"><use href="#folder" fill="url(#outer)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.039558) translate(-512 -512)"><use href="#folder" fill="url(#middle)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.030855) translate(-512 -512)"><use href="#folder" fill="url(#inner)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.024067) translate(-512 -512)"><use href="#folder" fill="url(#core)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.018772) translate(-512 -512)"><use href="#folder" fill="url(#outer)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.014642) translate(-512 -512)"><use href="#folder" fill="url(#middle)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.011421) translate(-512 -512)"><use href="#folder" fill="url(#inner)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.008908) translate(-512 -512)"><use href="#folder" fill="url(#core)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.006949) translate(-512 -512)"><use href="#folder" fill="url(#outer)"/><use href="#folder-sheen"/></g>
+    <g transform="translate(512 512) scale(.00542) translate(-512 -512)"><use href="#folder" fill="url(#middle)"/><use href="#folder-sheen"/></g>
+  </g>
+</svg>

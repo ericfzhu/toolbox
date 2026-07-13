@@ -75,7 +75,7 @@ export const TOOLS: Tool[] = [
 	{
 		name: 'JSON Tool',
 		href: '/json',
-		preview: 'previews/json.webp',
+		preview: 'previews/json.svg',
 		description: 'Format, minify, and view JSON in a tree',
 	},
 	{
