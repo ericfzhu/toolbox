@@ -599,7 +599,7 @@ export default function EnhancedAsciiArtComponent() {
 		<div className="flex w-full min-h-0 flex-col gap-5 lg:h-[calc(100svh-18rem)] lg:flex-row lg:gap-6">
 			<div className="w-full max-w-md shrink-0 space-y-4 lg:h-full lg:w-96 lg:overflow-y-auto lg:pr-1">
 				<div
-					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
+					className={`rounded-none p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
 						dragState === 'upload'
 							? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]'
 							: 'bg-white'
@@ -616,7 +616,7 @@ export default function EnhancedAsciiArtComponent() {
 						if (file) handleFileUpload(file);
 					}}>
 					<div
-						className={`rounded-[20px] border border-dashed px-5 py-5 text-center transition-[border-color,background-color] duration-200 ease-out ${
+						className={`rounded-none border border-dashed px-5 py-5 text-center transition-[border-color,background-color] duration-200 ease-out ${
 							dragState === 'upload' ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
 						}`}>
 						<input
@@ -631,7 +631,7 @@ export default function EnhancedAsciiArtComponent() {
 						/>
 						<button
 							onClick={() => fileInputRef.current?.click()}
-							className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+							className="inline-flex min-h-11 items-center justify-center rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
 							Select Image
 						</button>
 						<p className="mt-3 text-sm text-zinc-500">or drag and drop an image here</p>
@@ -639,8 +639,8 @@ export default function EnhancedAsciiArtComponent() {
 				</div>
 
 				{imageDimensions && (
-					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-						<div className="space-y-4 rounded-[20px] bg-zinc-50 px-4 py-4">
+					<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="space-y-4 rounded-none bg-zinc-50 px-4 py-4">
 							<div className="space-y-2">
 								<div className="flex items-center justify-between gap-4">
 									<label className="block text-sm font-medium text-zinc-900">Width (chars)</label>
@@ -703,7 +703,7 @@ export default function EnhancedAsciiArtComponent() {
 							</div>
 
 							<div className="space-y-2">
-								<label className="flex min-h-11 items-center gap-3 rounded-2xl bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+								<label className="flex min-h-11 items-center gap-3 rounded-none bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 									<input
 										type="checkbox"
 										id="dithering"
@@ -718,7 +718,7 @@ export default function EnhancedAsciiArtComponent() {
 									<select
 										value={settings.ditherAlgorithm}
 										onChange={(e) => setSettings((s) => ({ ...s, ditherAlgorithm: e.target.value }))}
-										className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
+										className="min-h-11 w-full rounded-none bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
 										<option value="floyd">Floyd-Steinberg</option>
 										<option value="atkinson">Atkinson</option>
 									</select>
@@ -730,7 +730,7 @@ export default function EnhancedAsciiArtComponent() {
 								<select
 									value={settings.edgeMethod}
 									onChange={(e) => setSettings((s) => ({ ...s, edgeMethod: e.target.value }))}
-									className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
+									className="min-h-11 w-full rounded-none bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
 									<option value="none">None</option>
 									<option value="sobel">Sobel</option>
 									<option value="dog">DoG (Contour)</option>
@@ -766,7 +766,7 @@ export default function EnhancedAsciiArtComponent() {
 								<select
 									value={settings.charSet}
 									onChange={(e) => setSettings((s) => ({ ...s, charSet: e.target.value }))}
-									className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
+									className="min-h-11 w-full rounded-none bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
 									<option value="detailed">Detailed</option>
 									<option value="standard">Standard</option>
 									<option value="blocks">Blocks</option>
@@ -781,7 +781,7 @@ export default function EnhancedAsciiArtComponent() {
 										maxLength={1}
 										value={settings.manualChar}
 										onChange={(e) => setSettings((s) => ({ ...s, manualChar: e.target.value }))}
-										className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
+										className="min-h-11 w-full rounded-none bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
 									/>
 								)}
 							</div>
@@ -789,7 +789,7 @@ export default function EnhancedAsciiArtComponent() {
 							<div className="grid grid-cols-2 gap-2">
 								<button
 									onClick={() => setSettings((s) => ({ ...s, isColor: true }))}
-									className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+									className={`min-h-11 rounded-none px-3 py-2 text-sm font-medium transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
 										settings.isColor
 											? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
 											: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
@@ -798,7 +798,7 @@ export default function EnhancedAsciiArtComponent() {
 								</button>
 								<button
 									onClick={() => setSettings((s) => ({ ...s, isColor: false }))}
-									className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+									className={`min-h-11 rounded-none px-3 py-2 text-sm font-medium transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
 										!settings.isColor
 											? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
 											: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
@@ -811,11 +811,11 @@ export default function EnhancedAsciiArtComponent() {
 				)}
 
 				{asciiData.length > 0 && (
-					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-						<div className="space-y-2 rounded-[20px] bg-zinc-50 p-4">
+					<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="space-y-2 rounded-none bg-zinc-50 p-4">
 							<button
 								onClick={() => handleDownload('txt')}
-								className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+								className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
 								<IconDownload size={18} />
 								<span>TXT</span>
 							</button>
@@ -829,7 +829,7 @@ export default function EnhancedAsciiArtComponent() {
 									<button
 										key={type}
 										onClick={() => handleDownload(type as 'txt' | 'jpg-bw' | 'jpg-color' | 'webp-bw' | 'webp-color')}
-										className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+										className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
 										<IconDownload size={18} />
 										<span>{label}</span>
 									</button>
@@ -843,15 +843,15 @@ export default function EnhancedAsciiArtComponent() {
 			<div className="flex min-w-0 flex-1 flex-col items-center">
 				{!originalImage ? (
 					<div className="flex min-h-72 w-full flex-1 items-center justify-center lg:min-h-0">
-						<div className="flex h-[46vh] min-h-72 w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)] lg:h-full lg:min-h-0">
-							<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500">
+						<div className="flex h-[46vh] min-h-72 w-full items-center justify-center rounded-none bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)] lg:h-full lg:min-h-0">
+							<div className="flex h-full w-full items-center justify-center rounded-none border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500">
 								Upload an image to get started
 							</div>
 						</div>
 					</div>
 				) : (
 					imageDimensions && (
-						<div className="flex h-[52vh] min-h-80 w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] lg:h-full lg:min-h-0">
+						<div className="flex h-[52vh] min-h-80 w-full items-center justify-center rounded-none bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] lg:h-full lg:min-h-0">
 							<div
 								ref={containerRef}
 								className="relative"
@@ -872,7 +872,7 @@ export default function EnhancedAsciiArtComponent() {
 								<Image
 									src={originalImage}
 									alt="Original"
-									className="absolute inset-0 select-none pointer-events-none rounded-[24px] object-contain outline outline-1 -outline-offset-1 outline-black/10"
+									className="absolute inset-0 select-none pointer-events-none rounded-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
 									style={{
 										clipPath: `inset(0 ${100 - comparePosition}% 0 0)`,
 									}}
@@ -882,7 +882,7 @@ export default function EnhancedAsciiArtComponent() {
 
 								<canvas
 									ref={displayCanvasRef}
-									className="absolute inset-0 select-none pointer-events-none rounded-[24px] object-contain outline outline-1 -outline-offset-1 outline-black/10"
+									className="absolute inset-0 select-none pointer-events-none rounded-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
 									style={{
 										clipPath: `inset(0 0 0 ${comparePosition}%)`,
 									}}

@@ -548,27 +548,27 @@ export default function DiffCheckerComponent() {
 			{!showDiff && (
 				<div className="flex w-full flex-col gap-6 md:flex-row md:gap-8">
 					<div className="flex-1">
-						<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-							<div className="rounded-[20px] bg-zinc-50 p-4">
+						<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+							<div className="rounded-none bg-zinc-50 p-4">
 								<label className="mb-2 block text-sm font-medium text-zinc-700">Original Text</label>
 								<textarea
 									value={oldText}
 									onChange={(e) => setOldText(e.target.value)}
 									placeholder="Paste original text here..."
-									className="h-48 w-full resize-none rounded-[20px] bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] md:h-80"
+									className="h-48 w-full resize-none rounded-none bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] md:h-80"
 								/>
 							</div>
 						</div>
 					</div>
 					<div className="flex-1">
-						<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-							<div className="rounded-[20px] bg-zinc-50 p-4">
+						<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+							<div className="rounded-none bg-zinc-50 p-4">
 								<label className="mb-2 block text-sm font-medium text-zinc-700">Modified Text</label>
 								<textarea
 									value={newText}
 									onChange={(e) => setNewText(e.target.value)}
 									placeholder="Paste modified text here..."
-									className="h-48 w-full resize-none rounded-[20px] bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] md:h-80"
+									className="h-48 w-full resize-none rounded-none bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] md:h-80"
 								/>
 							</div>
 						</div>
@@ -577,37 +577,37 @@ export default function DiffCheckerComponent() {
 			)}
 
 			{/* Controls */}
-			<div className="flex flex-wrap items-center gap-2 rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+			<div className="flex flex-wrap items-center gap-2 rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 				{!showDiff ? (
 					<button
 						onClick={handleCompare}
 						disabled={!oldText && !newText}
-						className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none">
+						className="inline-flex min-h-11 items-center rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none">
 						Compare
 					</button>
 				) : (
 					<>
 						<button
 							onClick={() => setShowDiff(false)}
-							className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
+							className="inline-flex min-h-11 items-center rounded-none bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 							Edit
 						</button>
 						<button
 							onClick={handleCopyDiff}
-							className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
+							className="inline-flex min-h-11 items-center gap-2 rounded-none bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 							<IconCopy size={16} />
 							<span className="hidden sm:inline">Copy Diff</span>
 							<span className="sm:hidden">Copy</span>
 						</button>
 						<button
 							onClick={handleClear}
-							className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
+							className="inline-flex min-h-11 items-center rounded-none bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 							Clear
 						</button>
 						<select
 							value={language}
 							onChange={(e) => setLanguage(e.target.value as Language)}
-							className="min-h-11 cursor-pointer rounded-2xl border-none bg-zinc-50 px-3 py-2 pr-10 text-sm text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow,background-color] duration-200 ease-out hover:bg-zinc-100 focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:px-4">
+							className="min-h-11 cursor-pointer rounded-none border-none bg-zinc-50 px-3 py-2 pr-10 text-sm text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow,background-color] duration-200 ease-out hover:bg-zinc-100 focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:px-4">
 							{LANGUAGES.map((lang) => (
 								<option key={lang.value} value={lang.value}>
 									{lang.label}
@@ -618,19 +618,19 @@ export default function DiffCheckerComponent() {
 							))}
 						</select>
 						<div className="hidden sm:block flex-1" />
-						<div className="flex rounded-2xl bg-zinc-50 p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+						<div className="flex rounded-none bg-zinc-50 p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 							<button
 								onClick={() => setViewMode('split')}
-								className={`min-h-9 rounded-xl px-3 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-4 ${viewMode === 'split' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
+								className={`min-h-9 rounded-none px-3 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-4 ${viewMode === 'split' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 								Split
 							</button>
 							<button
 								onClick={() => setViewMode('unified')}
-								className={`min-h-9 rounded-xl px-3 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-4 ${viewMode === 'unified' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
+								className={`min-h-9 rounded-none px-3 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-4 ${viewMode === 'unified' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 								Unified
 							</button>
 						</div>
-						<div className="rounded-2xl bg-zinc-50 px-3 py-2 text-sm tabular-nums text-zinc-600 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+						<div className="rounded-none bg-zinc-50 px-3 py-2 text-sm tabular-nums text-zinc-600 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 							<span className="text-green-600">+{additions}</span> <span className="text-red-600">-{deletions}</span>
 						</div>
 					</>
@@ -639,10 +639,10 @@ export default function DiffCheckerComponent() {
 
 			{/* Diff Result */}
 			{showDiff && diffResult.length > 0 && (
-				<div className="flex overflow-hidden rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+				<div className="flex overflow-hidden rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 					<div className="flex-1 min-w-0 overflow-x-auto">
 						{viewMode === 'split' ? (
-							<div className="flex min-w-[600px] overflow-hidden rounded-[20px] bg-white md:min-w-0">
+							<div className="flex min-w-[600px] overflow-hidden rounded-none bg-white md:min-w-0">
 								{/* Old side */}
 								<div className="min-w-0 flex-1 shadow-[inset_-1px_0px_0px_rgba(0,0,0,0.08)]">
 									<div className="bg-zinc-50 px-3 py-2 text-sm font-medium text-red-700 shadow-[inset_0px_-1px_0px_rgba(0,0,0,0.08)]">
@@ -701,7 +701,7 @@ export default function DiffCheckerComponent() {
 								</div>
 							</div>
 						) : (
-							<div ref={unifiedScrollRef} className="hljs max-h-[70vh] overflow-auto rounded-[20px] bg-white font-mono text-sm">
+							<div ref={unifiedScrollRef} className="hljs max-h-[70vh] overflow-auto rounded-none bg-white font-mono text-sm">
 								{highlightedLines.map((line, idx) => (
 									<div
 										key={idx}
@@ -747,8 +747,8 @@ export default function DiffCheckerComponent() {
 
 			{/* Empty state */}
 			{showDiff && diffResult.length === 0 && (
-				<div className="rounded-[28px] bg-white p-2 text-center text-zinc-500 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-					<div className="rounded-[20px] bg-zinc-50 px-6 py-8">No differences found. The texts are identical.</div>
+				<div className="rounded-none bg-white p-2 text-center text-zinc-500 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="rounded-none bg-zinc-50 px-6 py-8">No differences found. The texts are identical.</div>
 				</div>
 			)}
 		</div>

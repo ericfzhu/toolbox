@@ -121,11 +121,11 @@ ${htmlContent}
 	return (
 		<div className="flex h-full w-full flex-col gap-5">
 			{/* Controls */}
-			<div className="flex flex-wrap items-center gap-2 rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+			<div className="flex flex-wrap items-center gap-2 rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 				<button
 					onClick={handleCopyHtml}
 					disabled={!htmlContent}
-					className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] disabled:cursor-not-allowed disabled:text-zinc-400 sm:px-4">
+					className="inline-flex min-h-11 items-center gap-2 rounded-none bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] disabled:cursor-not-allowed disabled:text-zinc-400 sm:px-4">
 					<IconCopy size={16} />
 					<span className="hidden sm:inline">Copy HTML</span>
 					<span className="sm:hidden">Copy</span>
@@ -134,16 +134,16 @@ ${htmlContent}
 				<button
 					onClick={handleDownloadHtml}
 					disabled={!htmlContent}
-					className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] disabled:cursor-not-allowed disabled:text-zinc-400 sm:px-4">
+					className="inline-flex min-h-11 items-center gap-2 rounded-none bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] disabled:cursor-not-allowed disabled:text-zinc-400 sm:px-4">
 					<IconDownload size={16} />
 					<span className="hidden sm:inline">Download HTML</span>
 					<span className="sm:hidden">Download</span>
 					<span className="ml-1 hidden text-xs text-zinc-400 sm:inline">⌘D</span>
 				</button>
-				<button onClick={handleLoadSample} className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
+				<button onClick={handleLoadSample} className="inline-flex min-h-11 items-center rounded-none bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 					Sample
 				</button>
-				<button onClick={handleClear} className="inline-flex min-h-11 items-center rounded-2xl bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
+				<button onClick={handleClear} className="inline-flex min-h-11 items-center rounded-none bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96] sm:px-4">
 					Clear
 				</button>
 
@@ -153,20 +153,20 @@ ${htmlContent}
 					{wordCount} words, {charCount} chars
 				</span>
 
-				<div className="flex rounded-2xl bg-zinc-50 p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+				<div className="flex rounded-none bg-zinc-50 p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 					<button
 						onClick={() => setViewMode('split')}
-						className={`min-h-9 rounded-xl px-2 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-3 ${viewMode === 'split' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
+						className={`min-h-9 rounded-none px-2 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-3 ${viewMode === 'split' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 						Split
 					</button>
 					<button
 						onClick={() => setViewMode('preview')}
-						className={`min-h-9 rounded-xl px-2 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-3 ${viewMode === 'preview' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
+						className={`min-h-9 rounded-none px-2 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-3 ${viewMode === 'preview' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 						Preview
 					</button>
 					<button
 						onClick={() => setViewMode('html')}
-						className={`min-h-9 rounded-xl px-2 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-3 ${viewMode === 'html' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
+						className={`min-h-9 rounded-none px-2 text-sm transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] sm:px-3 ${viewMode === 'html' ? 'bg-white text-zinc-900 shadow-[0px_1px_2px_rgba(0,0,0,0.08)]' : 'text-zinc-600 hover:bg-zinc-100'}`}>
 						HTML
 					</button>
 				</div>
@@ -177,15 +177,15 @@ ${htmlContent}
 				{/* Editor */}
 				{(viewMode === 'split' || viewMode === 'html') && (
 					<div className="flex-1">
-						<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-							<div className="rounded-[20px] bg-zinc-50 p-4">
+						<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+							<div className="rounded-none bg-zinc-50 p-4">
 								{viewMode === 'split' && <label className="mb-2 block text-sm font-medium text-zinc-700">Markdown</label>}
 								<textarea
 									value={markdown}
 									onChange={(e) => setMarkdown(e.target.value)}
 									placeholder="Write your markdown here..."
 									spellCheck={false}
-									className="h-[40vh] w-full resize-none rounded-[20px] bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:p-4 md:h-[60vh]"
+									className="h-[40vh] w-full resize-none rounded-none bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:p-4 md:h-[60vh]"
 								/>
 							</div>
 						</div>
@@ -195,15 +195,15 @@ ${htmlContent}
 				{/* Preview */}
 				{(viewMode === 'split' || viewMode === 'preview') && (
 					<div className="flex-1">
-						<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-							<div className="rounded-[20px] bg-zinc-50 p-4">
+						<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+							<div className="rounded-none bg-zinc-50 p-4">
 								{viewMode === 'split' && <label className="mb-2 block text-sm font-medium text-zinc-700">Preview</label>}
 								<div
-									className="prose prose-zinc h-[40vh] w-full max-w-none overflow-auto rounded-[20px] bg-white p-3 text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] prose-sm sm:p-4 sm:prose-base md:h-[60vh]
+									className="prose prose-zinc h-[40vh] w-full max-w-none overflow-auto rounded-none bg-white p-3 text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] prose-sm sm:p-4 sm:prose-base md:h-[60vh]
 								prose-headings:mt-4 prose-headings:mb-2
 								prose-p:my-2
 								prose-pre:bg-zinc-100 prose-pre:text-zinc-800
-								prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-zinc-800 prose-code:before:content-none prose-code:after:content-none
+								prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none prose-code:text-zinc-800 prose-code:before:content-none prose-code:after:content-none
 								prose-blockquote:border-zinc-300 prose-blockquote:text-zinc-600
 								prose-table:text-sm
 								prose-th:bg-zinc-100
@@ -220,13 +220,13 @@ ${htmlContent}
 				{/* HTML Output */}
 				{viewMode === 'html' && (
 					<div className="flex-1">
-						<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-							<div className="rounded-[20px] bg-zinc-50 p-4">
+						<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+							<div className="rounded-none bg-zinc-50 p-4">
 								<label className="mb-2 block text-sm font-medium text-zinc-700">HTML Output</label>
 								<textarea
 									value={htmlContent}
 									readOnly
-									className="h-[40vh] w-full resize-none rounded-[20px] bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] sm:p-4 md:h-[60vh]"
+									className="h-[40vh] w-full resize-none rounded-none bg-white p-3 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] sm:p-4 md:h-[60vh]"
 								/>
 							</div>
 						</div>

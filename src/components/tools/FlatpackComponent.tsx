@@ -344,12 +344,12 @@ export default function CodeAggregatorComponent() {
 	return (
 		<div className="grid w-full max-w-6xl gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-8">
 			<div className="space-y-4">
-				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-					<div className="rounded-[20px] border border-dashed border-zinc-300 bg-zinc-50/60 px-5 py-6 text-center">
+				<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="rounded-none border border-dashed border-zinc-300 bg-zinc-50/60 px-5 py-6 text-center">
 						<button
 							onClick={handleFolderSelect}
 							disabled={isProcessing}
-							className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-5 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none disabled:active:scale-100">
+							className="inline-flex min-h-11 items-center justify-center rounded-none bg-zinc-900 px-5 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none disabled:active:scale-100">
 							{isProcessing ? 'Processing...' : 'Select Folder'}
 						</button>
 						<p className="mt-3 text-sm text-zinc-600">Select a folder to aggregate code files</p>
@@ -360,8 +360,8 @@ export default function CodeAggregatorComponent() {
 				</div>
 
 				{isProcessing && status && (
-					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-						<div className="rounded-[20px] bg-zinc-50 p-4">
+					<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="rounded-none bg-zinc-50 p-4">
 							<div className="mb-3 flex items-center justify-between gap-4">
 								<span className="text-sm font-medium text-zinc-800">
 									{status.phase === 'scanning' && 'Scanning directories...'}
@@ -369,7 +369,7 @@ export default function CodeAggregatorComponent() {
 								</span>
 								<button
 									onClick={handleCancel}
-									className="inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-sm text-zinc-500 transition-[transform,background-color,color] duration-200 ease-out hover:bg-white hover:text-zinc-900 active:scale-[0.96]">
+									className="inline-flex min-h-10 items-center justify-center rounded-none px-3 text-sm text-zinc-500 transition-[transform,background-color,color] duration-200 ease-out hover:bg-white hover:text-zinc-900 active:scale-[0.96]">
 									Cancel
 								</button>
 							</div>
@@ -399,8 +399,8 @@ export default function CodeAggregatorComponent() {
 
 			{aggregatedContent && (
 				<div className="min-w-0">
-					<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-						<div className="rounded-[20px] bg-zinc-50 p-4">
+					<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="rounded-none bg-zinc-50 p-4">
 							<div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-zinc-600">
 								<span className="tabular-nums">{status?.totalFiles || 0} files</span>
 								<span className="tabular-nums">{lineCount.toLocaleString()} lines</span>
@@ -408,7 +408,7 @@ export default function CodeAggregatorComponent() {
 								<div className="flex-1" />
 								<button
 									onClick={handleClear}
-									className="inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-sm text-zinc-500 transition-[transform,background-color,color] duration-200 ease-out hover:bg-white hover:text-zinc-900 active:scale-[0.96]">
+									className="inline-flex min-h-10 items-center justify-center rounded-none px-3 text-sm text-zinc-500 transition-[transform,background-color,color] duration-200 ease-out hover:bg-white hover:text-zinc-900 active:scale-[0.96]">
 									Clear
 								</button>
 							</div>
@@ -416,19 +416,19 @@ export default function CodeAggregatorComponent() {
 							<textarea
 								value={aggregatedContent}
 								readOnly
-								className="h-[50vh] w-full resize-none rounded-[20px] bg-white p-4 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] outline-none"
+								className="h-[50vh] w-full resize-none rounded-none bg-white p-4 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] outline-none"
 							/>
 
 							<div className="mt-3 grid gap-2 sm:grid-cols-2">
 								<button
 									onClick={handleCopy}
-									className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+									className="inline-flex min-h-11 items-center justify-center gap-2 rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
 									<IconCopy size={18} />
 									<span>Copy</span>
 								</button>
 								<button
 									onClick={handleDownload}
-									className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+									className="inline-flex min-h-11 items-center justify-center gap-2 rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
 									<IconDownload size={18} />
 									<span>Download</span>
 								</button>

@@ -201,7 +201,7 @@ export default function ImageConverterComponent() {
 		<div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
 			<div className="w-full max-w-sm space-y-4 lg:sticky lg:top-8 lg:w-80 lg:self-start">
 				<div
-					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
+					className={`rounded-none p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
 						isImageDragging
 							? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]'
 							: 'bg-white'
@@ -210,7 +210,7 @@ export default function ImageConverterComponent() {
 					onDragLeave={handleImageDragLeave}
 					onDrop={handleImageDrop}>
 					<div
-						className={`rounded-[20px] border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
+						className={`rounded-none border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
 							isImageDragging ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
 						}`}>
 						<input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" ref={fileInputRef} />
@@ -218,14 +218,14 @@ export default function ImageConverterComponent() {
 						<p className="mt-3 text-sm text-zinc-600">Drag and drop an image here, or</p>
 						<button
 							onClick={() => fileInputRef.current?.click()}
-							className="mt-3 inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+							className="mt-3 inline-flex min-h-11 items-center justify-center rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
 							Select Image
 						</button>
 					</div>
 				</div>
 
-				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-					<div className="space-y-5 rounded-[20px] bg-zinc-50 px-4 py-4">
+				<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="space-y-5 rounded-none bg-zinc-50 px-4 py-4">
 						<div className="space-y-2">
 							<label className="block text-sm font-medium text-zinc-900">Format</label>
 							<div className="grid grid-cols-3 gap-2">
@@ -233,7 +233,7 @@ export default function ImageConverterComponent() {
 									<button
 										key={format}
 										onClick={() => setSelectedFormat(format)}
-										className={`min-h-11 rounded-2xl px-3 py-2 text-sm font-medium uppercase tracking-[0.08em] transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
+										className={`min-h-11 rounded-none px-3 py-2 text-sm font-medium uppercase tracking-[0.08em] transition-[transform,background-color,box-shadow,color] duration-200 ease-out active:scale-[0.96] ${
 											selectedFormat === format
 												? 'bg-zinc-900 text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)]'
 												: 'bg-white text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] hover:bg-zinc-100'
@@ -249,7 +249,7 @@ export default function ImageConverterComponent() {
 							{(['width', 'height'] as const).map((dimension) => (
 								<div
 									key={dimension}
-									className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+									className="flex items-center justify-between gap-3 rounded-none bg-white px-3 py-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 									<span className="text-sm capitalize text-zinc-600">{dimension}</span>
 									<div className="flex items-center">
 										<input
@@ -275,7 +275,7 @@ export default function ImageConverterComponent() {
 						<button
 							onClick={handleConvertAndDownload}
 							disabled={!originalImage}
-							className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none"
+							className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow,color] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 disabled:shadow-none"
 							aria-label="Convert and download image">
 							<IconDownload size={20} />
 							<span>Download</span>
@@ -286,15 +286,15 @@ export default function ImageConverterComponent() {
 
 			{!originalImage ? (
 				<div className="flex flex-1 items-center justify-center">
-					<div className="flex h-[60vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
-						<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500">
+					<div className="flex h-[60vh] w-full items-center justify-center rounded-none bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+						<div className="flex h-full w-full items-center justify-center rounded-none border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500">
 							Upload an image to get started
 						</div>
 					</div>
 				</div>
 			) : (
 				<div className="flex flex-1 flex-col items-center">
-					<div className="flex h-[70vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="flex h-[70vh] w-full items-center justify-center rounded-none bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 						<div
 							className="relative"
 							style={{
@@ -307,7 +307,7 @@ export default function ImageConverterComponent() {
 							<Image
 								src={originalImage}
 								alt="Original"
-								className="absolute inset-0 select-none rounded-[24px] object-contain outline outline-1 -outline-offset-1 outline-black/10"
+								className="absolute inset-0 select-none rounded-none object-contain outline outline-1 -outline-offset-1 outline-black/10"
 								fill
 								sizes="100vw"
 								unoptimized

@@ -239,7 +239,7 @@ export default function ColorPickerComponent() {
 		<div className="flex flex-col gap-6 md:flex-row md:gap-8">
 			<div className="order-2 w-full max-w-sm space-y-4 md:order-1 md:w-80">
 				<div
-					className={`rounded-[28px] p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
+					className={`rounded-none p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-200 ease-out ${
 						isDragging
 							? 'bg-zinc-100 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_2px_-1px_rgba(0,0,0,0.08),0px_2px_4px_0px_rgba(0,0,0,0.06)]'
 							: 'bg-white'
@@ -248,13 +248,13 @@ export default function ColorPickerComponent() {
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}>
 					<div
-						className={`rounded-[20px] border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
+						className={`rounded-none border border-dashed px-5 py-6 text-center transition-[border-color,background-color] duration-200 ease-out ${
 							isDragging ? 'border-zinc-600 bg-zinc-50' : 'border-zinc-300 bg-zinc-50/60'
 						}`}>
 						<input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
 						<button
 							onClick={openFilePicker}
-							className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+							className="inline-flex min-h-11 items-center justify-center rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
 							Select Image
 						</button>
 						<p className="mt-3 text-sm text-zinc-500">or drag and drop an image here</p>
@@ -264,11 +264,11 @@ export default function ColorPickerComponent() {
 				{selectedColors.map((color, index) => (
 					<div
 						key={index}
-						className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-						<div className="rounded-[20px] bg-zinc-50 p-4">
+						className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+						<div className="rounded-none bg-zinc-50 p-4">
 							<div className="relative mb-3 flex items-center justify-between">
 								<div
-									className="h-14 w-full rounded-2xl shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]"
+									className="h-14 w-full rounded-none shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]"
 									style={{ backgroundColor: color.rgb }}></div>
 								<button
 									onClick={() => setSelectedColors((colors) => colors.filter((_, i) => i !== index))}
@@ -281,7 +281,7 @@ export default function ColorPickerComponent() {
 								{['rgb', 'hex', 'hsl'].map((format) => (
 									<button
 										key={format}
-										className="flex min-h-11 w-full items-center rounded-2xl bg-white px-2 py-2 text-left shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.98]"
+										className="flex min-h-11 w-full items-center rounded-none bg-white px-2 py-2 text-left shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.98]"
 										onClick={() => copyToClipboard(color[format as keyof Color])}>
 										<span className="w-10 uppercase text-zinc-500">{format}</span>
 										<span className="flex-grow font-mono text-zinc-700">{color[format as keyof Color]}</span>
@@ -292,7 +292,7 @@ export default function ColorPickerComponent() {
 							<div className="mt-3">
 								<button
 									onClick={() => (color.palette.length ? togglePalette(index) : generatePalette(index))}
-									className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
+									className="inline-flex min-h-11 w-full items-center justify-center rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
 									<IconPalette size={16} className="mr-2" />
 									{color.palette.length ? (color.showPalette ? 'Hide' : 'Show') : 'Generate'} Palette
 									{color.palette.length > 0 &&
@@ -309,7 +309,7 @@ export default function ColorPickerComponent() {
 										{color.palette.map((paletteColor, i) => (
 											<button
 												key={i}
-												className="h-10 w-10 rounded-2xl cursor-pointer shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,box-shadow] duration-200 ease-out hover:scale-110 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
+												className="h-10 w-10 rounded-none cursor-pointer shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,box-shadow] duration-200 ease-out hover:scale-110 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]"
 												style={{ backgroundColor: paletteColor }}
 												title={`Click to copy: ${paletteColor}`}
 												onClick={() => copyToClipboard(paletteColor)}
@@ -318,7 +318,7 @@ export default function ColorPickerComponent() {
 									</div>
 									<button
 										onClick={() => downloadImageWithPalette(color.palette)}
-										className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
+										className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 active:scale-[0.96]">
 										<IconDownload size={16} />
 										<span>Download with Palette</span>
 									</button>
@@ -331,8 +331,8 @@ export default function ColorPickerComponent() {
 
 			{!image ? (
 				<div className="flex-1 flex items-center justify-center order-1 md:order-2">
-					<div className="flex h-[40vh] w-full items-center justify-center rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)] md:h-[50vh]">
-						<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500 text-sm sm:text-base">
+					<div className="flex h-[40vh] w-full items-center justify-center rounded-none bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)] md:h-[50vh]">
+						<div className="flex h-full w-full items-center justify-center rounded-none border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-zinc-500 text-sm sm:text-base">
 							Upload an image to get started
 						</div>
 					</div>
@@ -340,14 +340,14 @@ export default function ColorPickerComponent() {
 			) : (
 				<div className="flex-1 flex flex-col items-center order-1 md:order-2">
 					<div
-						className="relative w-full rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]"
+						className="relative w-full rounded-none bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]"
 						style={{ maxHeight: '50vh' }}>
 						<canvas
 							ref={canvasRef}
 							onClick={handleImageClick}
 							onMouseMove={handleMouseMove}
 							onMouseLeave={handleMouseLeave}
-							className="cursor-none max-h-full max-w-full rounded-[24px] bg-white outline outline-1 -outline-offset-1 outline-black/10"
+							className="cursor-none max-h-full max-w-full rounded-none bg-white outline outline-1 -outline-offset-1 outline-black/10"
 							style={{ height: 'auto' }}
 						/>
 						{magnifierPosition && (

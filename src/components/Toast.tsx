@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 				{toasts.map((toast) => (
 					<div
 						key={toast.id}
-						className="bg-zinc-800 text-white px-4 py-2 rounded-sm shadow-lg text-sm animate-toast-in"
+						className="bg-zinc-800 text-white px-4 py-2 rounded-none shadow-lg text-sm animate-toast-in"
 					>
 						{toast.message}
 					</div>

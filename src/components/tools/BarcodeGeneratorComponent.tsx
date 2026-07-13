@@ -166,14 +166,14 @@ export default function BarcodeGeneratorComponent() {
 	return (
 		<div className="flex w-full flex-col gap-6 lg:flex-row lg:gap-8">
 			<div className="w-full max-w-sm shrink-0 space-y-4 lg:w-80">
-				<div className="rounded-[28px] bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
-					<div className="space-y-4 rounded-[20px] bg-zinc-50 p-4">
+				<div className="rounded-none bg-white p-2 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+					<div className="space-y-4 rounded-none bg-zinc-50 p-4">
 						<div className="space-y-2">
 							<label className="block text-sm font-medium text-zinc-900">Barcode Format</label>
 							<select
 								value={format}
 								onChange={(e) => setFormat(e.target.value as BarcodeFormat)}
-								className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
+								className="min-h-11 w-full rounded-none bg-white px-3 py-2 pr-10 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]">
 								{Object.entries(FORMAT_INFO).map(([key, info]) => (
 									<option key={key} value={key}>
 										{info.name}
@@ -190,7 +190,7 @@ export default function BarcodeGeneratorComponent() {
 								value={text}
 								onChange={(e) => setText(e.target.value)}
 								placeholder={currentFormat.placeholder}
-								className="min-h-11 w-full rounded-2xl bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
+								className="min-h-11 w-full rounded-none bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
 							/>
 						</div>
 
@@ -226,7 +226,7 @@ export default function BarcodeGeneratorComponent() {
 							/>
 						</div>
 
-						<label className="flex min-h-11 items-center gap-3 rounded-2xl bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+						<label className="flex min-h-11 items-center gap-3 rounded-none bg-white px-3 py-2 text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 							<input
 								type="checkbox"
 								id="showText"
@@ -245,13 +245,13 @@ export default function BarcodeGeneratorComponent() {
 										type="color"
 										value={foregroundColor}
 										onChange={(e) => setForegroundColor(e.target.value)}
-										className="h-11 w-11 shrink-0 cursor-pointer rounded-2xl bg-white p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]"
+										className="h-11 w-11 shrink-0 cursor-pointer rounded-none bg-white p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]"
 									/>
 									<input
 										type="text"
 										value={foregroundColor}
 										onChange={(e) => setForegroundColor(e.target.value)}
-										className="min-h-11 min-w-0 flex-1 rounded-2xl bg-white px-3 py-2 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
+										className="min-h-11 min-w-0 flex-1 rounded-none bg-white px-3 py-2 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
 									/>
 								</div>
 							</div>
@@ -262,13 +262,13 @@ export default function BarcodeGeneratorComponent() {
 										type="color"
 										value={backgroundColor}
 										onChange={(e) => setBackgroundColor(e.target.value)}
-										className="h-11 w-11 shrink-0 cursor-pointer rounded-2xl bg-white p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]"
+										className="h-11 w-11 shrink-0 cursor-pointer rounded-none bg-white p-1 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)]"
 									/>
 									<input
 										type="text"
 										value={backgroundColor}
 										onChange={(e) => setBackgroundColor(e.target.value)}
-										className="min-h-11 min-w-0 flex-1 rounded-2xl bg-white px-3 py-2 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
+										className="min-h-11 min-w-0 flex-1 rounded-none bg-white px-3 py-2 font-mono text-sm text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)]"
 									/>
 								</div>
 							</div>
@@ -278,14 +278,14 @@ export default function BarcodeGeneratorComponent() {
 							<div className="grid gap-2 border-t border-zinc-200 pt-4">
 								<button
 									onClick={handleDownloadPng}
-									className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
+									className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.18)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-800 hover:shadow-[0px_6px_16px_rgba(0,0,0,0.16)] active:scale-[0.96]">
 									<IconDownload size={18} />
 									<span>Download PNG</span>
 									<span className="ml-1 text-xs text-zinc-400">⌘S</span>
 								</button>
 								<button
 									onClick={handleDownloadSvg}
-									className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96]">
+									className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-medium text-zinc-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.08)] transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-zinc-100 active:scale-[0.96]">
 									<IconDownload size={18} />
 									<span>Download SVG</span>
 								</button>
@@ -295,18 +295,18 @@ export default function BarcodeGeneratorComponent() {
 				</div>
 			</div>
 
-			<div className="relative flex min-h-[24rem] min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[32px] bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
+			<div className="relative flex min-h-[24rem] min-w-0 flex-1 items-center justify-center overflow-hidden rounded-none bg-zinc-50 p-3 shadow-[inset_0px_0px_0px_1px_rgba(0,0,0,0.08)]">
 				{error ? (
-					<div className="rounded-[24px] bg-red-50 px-5 py-4 text-center text-sm text-red-600 shadow-[0px_0px_0px_1px_rgba(220,38,38,0.16)]">
+					<div className="rounded-none bg-red-50 px-5 py-4 text-center text-sm text-red-600 shadow-[0px_0px_0px_1px_rgba(220,38,38,0.16)]">
 						{error}
 					</div>
 				) : !barcodeGenerated ? (
-					<div className="flex h-full w-full items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-sm text-zinc-500 sm:text-base">
+					<div className="flex h-full w-full items-center justify-center rounded-none border border-dashed border-zinc-300 bg-white/70 px-6 text-center text-sm text-zinc-500 sm:text-base">
 						<p>Enter content to generate barcode</p>
 					</div>
 				) : null}
 				<div
-					className={`${barcodeGenerated && !error ? 'block' : 'pointer-events-none absolute invisible'} max-w-full overflow-x-auto rounded-[24px] p-5 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1),0px_12px_30px_rgba(0,0,0,0.08)]`}
+					className={`${barcodeGenerated && !error ? 'block' : 'pointer-events-none absolute invisible'} max-w-full overflow-x-auto rounded-none p-5 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1),0px_12px_30px_rgba(0,0,0,0.08)]`}
 					style={{ backgroundColor }}>
 					<svg ref={svgRef} className="h-auto max-w-full outline outline-1 -outline-offset-1 outline-black/10" />
 				</div>

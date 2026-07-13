@@ -11,9 +11,9 @@ export default function WordCounterComponent() {
 
 	return (
 		<div className="flex items-center justify-center">
-			<div className="relative w-full max-w-4xl rounded-[32px] bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
+			<div className="relative w-full max-w-4xl rounded-none bg-zinc-50 p-3 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.06),0px_1px_2px_-1px_rgba(0,0,0,0.06),0px_2px_4px_0px_rgba(0,0,0,0.04)]">
 				<textarea
-					className="z-10 mb-4 h-[50vh] w-full rounded-[24px] border border-zinc-300 bg-white/90 p-4 text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.04)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:h-[calc(100vh-30rem)]"
+					className="z-10 mb-4 h-[50vh] w-full rounded-none border border-zinc-300 bg-white/90 p-4 text-zinc-700 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.04)] transition-[box-shadow] duration-200 ease-out focus:outline-none focus:shadow-[0px_0px_0px_2px_rgba(24,24,27,0.18)] sm:h-[calc(100vh-30rem)]"
 					value={text}
 					onChange={(e) => setText(e.target.value)}
 					placeholder="Type or paste your text here..."
